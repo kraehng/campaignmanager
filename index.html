@@ -705,17 +705,6 @@
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .custom-roll {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .custom-roll input {
-            margin: 0;
-            flex: 1;
-        }
-
         /* Quick Notes */
         .quick-notes {
             position: fixed;
@@ -1653,11 +1642,10 @@
                 <button class="dice-btn" onclick="rollDice(20)">d20</button>
                 <button class="dice-btn" onclick="rollDice(100)">d100</button>
             </div>
-            <div class="custom-roll">
-                <input type="text" id="custom-dice" placeholder="2d6+3" style="margin: 0;" onkeypress="if(event.key==='Enter') rollCustomDice()">
-                <button onclick="rollCustomDice()" style="padding: 12px;">Roll</button>
+            <div class="dice-result" id="dice-result">
+                <div style="font-size: 1.5em; opacity: 0.6;">🎲</div>
+                <small style="font-size: 0.9em; opacity: 0.7;">Click a die to roll!</small>
             </div>
-            <div class="dice-result" id="dice-result">Roll some dice!</div>
         </div>
     </div>
 
@@ -1722,7 +1710,24 @@
         }
 
         function saveData() {
-            localStorage.setItem('gmCampaignDataPro', JSON.stringify(campaignData));
+            try {
+                localStorage.setItem('gmCampaignDataPro', JSON.stringify(campaignData));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert('❌ Storage limit exceeded! Your media files are too large.\n\n' +
+                          'Solutions:\n' +
+                          '1. Delete some old media files\n' +
+                          '2. Use smaller image files (compress them first)\n' +
+                          '3. Use YouTube links for videos instead of uploading\n' +
+                          '4. Export your campaign data and clear old sessions\n\n' +
+                          'Tip: Keep uploaded files under 5-8MB each for best results.');
+                } else {
+                    alert('❌ Error saving data: ' + e.message);
+                }
+                console.error('Save error:', e);
+                return false;
+            }
+            return true;
         }
 
         // Settings
@@ -1882,6 +1887,7 @@
                 document.getElementById('char-notes').value = '';
                 document.getElementById('char-relationships').value = '';
                 document.getElementById('char-image').value = '';
+                document.getElementById('char-image-preview').src = '';
                 document.getElementById('char-image-preview').style.display = 'none';
             }
             
@@ -2208,6 +2214,7 @@
                 document.getElementById('location-description').value = '';
                 document.getElementById('location-notes').value = '';
                 document.getElementById('location-image').value = '';
+                document.getElementById('location-image-preview').src = '';
                 document.getElementById('location-image-preview').style.display = 'none';
             }
             
@@ -2315,6 +2322,7 @@
                 document.getElementById('item-owner').value = '';
                 document.getElementById('item-description').value = '';
                 document.getElementById('item-image').value = '';
+                document.getElementById('item-image-preview').src = '';
                 document.getElementById('item-image-preview').style.display = 'none';
             }
             
@@ -2442,6 +2450,7 @@
 
         function closeCombatantModal() {
             document.getElementById('combatant-modal').classList.remove('active');
+            editingIndex = null;
         }
 
         function saveCombatant() {
@@ -2698,11 +2707,22 @@
                 const fileSizeMB = file.size / (1024 * 1024);
                 
                 // Warn about large files
-                if (fileSizeMB > 10) {
-                    if (!confirm(`This file is ${fileSizeMB.toFixed(1)}MB. Large files can slow down the app. Continue?`)) {
-                        input.value = '';
-                        return;
-                    }
+                if (fileSizeMB > 8) {
+                    alert(`⚠️ Warning: This file is ${fileSizeMB.toFixed(1)}MB\n\n` +
+                          `Large files may fail to save due to browser storage limits.\n\n` +
+                          `Recommendations:\n` +
+                          `• Compress images before uploading (aim for under 5MB)\n` +
+                          `• Use YouTube links for videos instead of uploading\n` +
+                          `• Use lower resolution images for maps\n\n` +
+                          `Continue at your own risk!`);
+                }
+                
+                if (fileSizeMB > 15) {
+                    alert(`❌ Error: File is too large (${fileSizeMB.toFixed(1)}MB)\n\n` +
+                          `Files over 15MB will likely fail to save.\n` +
+                          `Please compress this file or use a YouTube link for videos.`);
+                    input.value = '';
+                    return;
                 }
                 
                 const reader = new FileReader();
@@ -2759,17 +2779,24 @@
                     campaignData.media.push(media);
                 }
                 
-                saveData();
-                renderMedia();
-                
-                // Clear temp data
-                tempMediaData = null;
-                tempMediaType = null;
-                
-                closeMediaModal();
-                
-                // Show success message
-                alert('✅ Media saved successfully! Click it to show fullscreen to your players.');
+                const saved = saveData();
+                if (saved) {
+                    renderMedia();
+                    
+                    // Clear temp data
+                    tempMediaData = null;
+                    tempMediaType = null;
+                    
+                    closeMediaModal();
+                    
+                    // Show success message
+                    alert('✅ Media saved successfully! Click it to show fullscreen to your players.');
+                } else {
+                    // If save failed, remove the media that was just added
+                    if (editingIndex === null) {
+                        campaignData.media.pop();
+                    }
+                }
             } else if (youtube) {
                 media.type = 'youtube';
                 
@@ -2779,11 +2806,18 @@
                     campaignData.media.push(media);
                 }
                 
-                saveData();
-                renderMedia();
-                closeMediaModal();
-                
-                alert('✅ YouTube video saved! Click it to show fullscreen to your players.');
+                const saved = saveData();
+                if (saved) {
+                    renderMedia();
+                    closeMediaModal();
+                    
+                    alert('✅ YouTube video saved! Click it to show fullscreen to your players.');
+                } else {
+                    // If save failed, remove the media that was just added
+                    if (editingIndex === null) {
+                        campaignData.media.pop();
+                    }
+                }
             }
         }
 
@@ -2868,40 +2902,7 @@
 
         function rollDice(sides) {
             const result = Math.floor(Math.random() * sides) + 1;
-            document.getElementById('dice-result').textContent = `🎲 ${result} (d${sides})`;
-        }
-
-        function rollCustomDice() {
-            const input = document.getElementById('custom-dice').value.trim();
-            
-            if (!input) {
-                document.getElementById('dice-result').innerHTML = '<small style="font-size: 0.9em;">Enter a dice formula<br>(e.g., 2d6+3, 1d20, 3d8-2)</small>';
-                return;
-            }
-            
-            const match = input.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
-            
-            if (!match) {
-                document.getElementById('dice-result').innerHTML = '<small style="font-size: 0.85em; color: #fca5a5;">❌ Invalid format!<br>Use: 2d6+3 or 1d20 or 3d8-2</small>';
-                return;
-            }
-
-            const [, numDice, sides, modifier] = match;
-            let total = 0;
-            let rolls = [];
-
-            for (let i = 0; i < parseInt(numDice); i++) {
-                const roll = Math.floor(Math.random() * parseInt(sides)) + 1;
-                rolls.push(roll);
-                total += roll;
-            }
-
-            if (modifier) {
-                total += parseInt(modifier);
-            }
-
-            document.getElementById('dice-result').innerHTML = 
-                `<div style="font-size: 1.8em; margin-bottom: 5px;">🎲 ${total}</div><small style="font-size: 0.75em; opacity: 0.9;">Rolls: [${rolls.join(', ')}]${modifier ? ' ' + modifier : ''}</small>`;
+            document.getElementById('dice-result').innerHTML = `<div style="font-size: 2em; font-weight: 700;">🎲 ${result}</div><small style="font-size: 0.8em; opacity: 0.8; margin-top: 5px; display: block;">d${sides}</small>`;
         }
 
         // Quick Notes
@@ -2989,6 +2990,67 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // Keyboard shortcuts
+        let keyBuffer = '';
+        let keyTimeout = null;
+
+        document.addEventListener('keydown', function(e) {
+            // Don't trigger shortcuts when typing in inputs or textareas
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            // Handle Ctrl+ shortcuts for opening modals
+            if (e.ctrlKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'n':
+                        e.preventDefault();
+                        openCharModal();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        openPlotModal();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        openSessionModal();
+                        break;
+                    case 'l':
+                        e.preventDefault();
+                        openLocationModal();
+                        break;
+                }
+                return;
+            }
+
+            // Handle dice shortcuts (d4, d6, d8, d10, d12, d20, d100)
+            if (e.key.toLowerCase() === 'd' || (keyBuffer.startsWith('d') && /^\d$/.test(e.key))) {
+                keyBuffer += e.key.toLowerCase();
+                
+                // Clear previous timeout
+                if (keyTimeout) clearTimeout(keyTimeout);
+                
+                // Check if we have a valid dice command
+                const diceMatch = keyBuffer.match(/^d(\d+)$/);
+                if (diceMatch) {
+                    const sides = parseInt(diceMatch[1]);
+                    // Support common dice types
+                    if ([4, 6, 8, 10, 12, 20, 100].includes(sides)) {
+                        e.preventDefault();
+                        rollDice(sides);
+                        keyBuffer = '';
+                        return;
+                    }
+                }
+                
+                // Reset buffer after 1 second of inactivity
+                keyTimeout = setTimeout(() => {
+                    keyBuffer = '';
+                }, 1000);
+            } else {
+                // Reset buffer if non-dice key pressed
+                keyBuffer = '';
+            }
+        });
 
         // Render all
         function renderAll() {

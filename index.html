@@ -1654,7 +1654,7 @@
                 <button class="dice-btn" onclick="rollDice(100)">d100</button>
             </div>
             <div class="custom-roll">
-                <input type="text" id="custom-dice" placeholder="2d6+3" style="margin: 0;">
+                <input type="text" id="custom-dice" placeholder="2d6+3" style="margin: 0;" onkeypress="if(event.key==='Enter') rollCustomDice()">
                 <button onclick="rollCustomDice()" style="padding: 12px;">Roll</button>
             </div>
             <div class="dice-result" id="dice-result">Roll some dice!</div>
@@ -2872,11 +2872,17 @@
         }
 
         function rollCustomDice() {
-            const input = document.getElementById('custom-dice').value;
-            const match = input.match(/(\d+)d(\d+)([+-]\d+)?/i);
+            const input = document.getElementById('custom-dice').value.trim();
+            
+            if (!input) {
+                document.getElementById('dice-result').innerHTML = '<small style="font-size: 0.9em;">Enter a dice formula<br>(e.g., 2d6+3, 1d20, 3d8-2)</small>';
+                return;
+            }
+            
+            const match = input.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
             
             if (!match) {
-                document.getElementById('dice-result').textContent = 'Invalid format! Use: 2d6+3';
+                document.getElementById('dice-result').innerHTML = '<small style="font-size: 0.85em; color: #fca5a5;">❌ Invalid format!<br>Use: 2d6+3 or 1d20 or 3d8-2</small>';
                 return;
             }
 
@@ -2895,7 +2901,7 @@
             }
 
             document.getElementById('dice-result').innerHTML = 
-                `🎲 ${total}<br><small style="font-size: 0.75em; opacity: 0.9;">Rolls: [${rolls.join(', ')}]${modifier ? ' ' + modifier : ''}</small>`;
+                `<div style="font-size: 1.8em; margin-bottom: 5px;">🎲 ${total}</div><small style="font-size: 0.75em; opacity: 0.9;">Rolls: [${rolls.join(', ')}]${modifier ? ' ' + modifier : ''}</small>`;
         }
 
         // Quick Notes

@@ -2647,6 +2647,10 @@
             editingType = 'media';
             const modal = document.getElementById('media-modal');
             
+            // Clear temp data
+            tempMediaData = null;
+            tempMediaType = null;
+            
             if (index !== null) {
                 const media = campaignData.media[index];
                 document.getElementById('media-name').value = media.name;
@@ -2655,6 +2659,10 @@
                 document.getElementById('media-youtube').value = media.youtube || '';
                 
                 if (media.data) {
+                    // Store existing media data
+                    tempMediaData = media.data;
+                    tempMediaType = media.type;
+                    
                     document.getElementById('media-preview').innerHTML = 
                         media.type === 'video' ? 
                         `<video src="${media.data}" style="max-width: 220px; max-height: 220px; border-radius: 12px;" controls></video>` :
@@ -2674,22 +2682,51 @@
 
         function closeMediaModal() {
             document.getElementById('media-modal').classList.remove('active');
+            tempMediaData = null;
+            tempMediaType = null;
             editingIndex = null;
         }
+
+        let tempMediaData = null;
+        let tempMediaType = null;
 
         function previewMedia(input) {
             const preview = document.getElementById('media-preview');
             
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+                const fileSizeMB = file.size / (1024 * 1024);
+                
+                // Warn about large files
+                if (fileSizeMB > 10) {
+                    if (!confirm(`This file is ${fileSizeMB.toFixed(1)}MB. Large files can slow down the app. Continue?`)) {
+                        input.value = '';
+                        return;
+                    }
+                }
+                
                 const reader = new FileReader();
                 
+                // Show loading message
+                preview.innerHTML = '<div style="color: #60a5fa; padding: 20px;">📂 Loading file...</div>';
+                
                 reader.onload = function(e) {
+                    tempMediaData = e.target.result;
+                    tempMediaType = file.type.startsWith('video') ? 'video' : 'image';
+                    
                     if (file.type.startsWith('image')) {
                         preview.innerHTML = `<img src="${e.target.result}" class="image-preview">`;
                     } else if (file.type.startsWith('video')) {
                         preview.innerHTML = `<video src="${e.target.result}" class="image-preview" controls></video>`;
                     }
+                    
+                    preview.innerHTML += '<div style="color: #10b981; margin-top: 10px; font-size: 0.9em;">✓ File loaded! Ready to save.</div>';
+                };
+                
+                reader.onerror = function() {
+                    preview.innerHTML = '<div style="color: #ef4444; padding: 20px;">❌ Error loading file. Try a smaller file or use a YouTube link instead.</div>';
+                    tempMediaData = null;
+                    input.value = '';
                 };
                 
                 reader.readAsDataURL(file);
@@ -2699,9 +2736,8 @@
         function saveMedia() {
             const name = document.getElementById('media-name').value || 'Untitled Media';
             const youtube = document.getElementById('media-youtube').value;
-            const fileInput = document.getElementById('media-file');
             
-            if (!youtube && (!fileInput.files || !fileInput.files[0])) {
+            if (!youtube && !tempMediaData) {
                 alert('Please upload a file or provide a YouTube URL');
                 return;
             }
@@ -2713,27 +2749,28 @@
                 youtube: youtube
             };
 
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
+            if (tempMediaData) {
+                media.type = tempMediaType;
+                media.data = tempMediaData;
                 
-                reader.onload = function(e) {
-                    media.type = file.type.startsWith('video') ? 'video' : 'image';
-                    media.data = e.target.result;
-                    
-                    if (editingIndex !== null) {
-                        campaignData.media[editingIndex] = media;
-                    } else {
-                        campaignData.media.push(media);
-                    }
-                    
-                    saveData();
-                    renderMedia();
-                    closeMediaModal();
-                };
+                if (editingIndex !== null) {
+                    campaignData.media[editingIndex] = media;
+                } else {
+                    campaignData.media.push(media);
+                }
                 
-                reader.readAsDataURL(file);
-            } else {
+                saveData();
+                renderMedia();
+                
+                // Clear temp data
+                tempMediaData = null;
+                tempMediaType = null;
+                
+                closeMediaModal();
+                
+                // Show success message
+                alert('✅ Media saved successfully! Click it to show fullscreen to your players.');
+            } else if (youtube) {
                 media.type = 'youtube';
                 
                 if (editingIndex !== null) {
@@ -2745,6 +2782,8 @@
                 saveData();
                 renderMedia();
                 closeMediaModal();
+                
+                alert('✅ YouTube video saved! Click it to show fullscreen to your players.');
             }
         }
 

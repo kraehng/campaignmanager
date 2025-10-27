@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Manager – Matte</title>
+  <style>
+    :root{
+      --bg:#121212;           /* matte charcoal */
+      --panel:#1d1d1d;        /* flat graphite */
+      --panel-2:#202020;      /* slightly lighter */
+      --ink:#e6e1d9;          /* warm paper ink */
+      --muted:#b7b0a4;        /* soft beige-gray */
+      --accent:#c3a776;       /* muted brass */
+      --accent-2:#8d7854;     /* dull bronze */
+      --ok:#7fb07f;
+      --bad:#c26a6a;
+      --edge: #2a2a2a;
+      --chip:#2b2b2b;
+      --shadow: 0 4px 12px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink); background:var(--bg);
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+
+    header{
+      background:var(--panel); border:1px solid var(--edge); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);
+    }
+
+    .header-row{display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    h1{font-size:22px; margin:0; letter-spacing:.3px; color:var(--ink)}
+
+    .tools{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{
+      background:var(--chip); border:1px solid var(--edge); color:var(--ink);
+      padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; transition:transform .05s ease, background .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px); background:#2f2f2f}
+    .btn.danger{color:#f4cccc; border-color:#3a2626; background:#241a1a}
+    .btn.danger:hover{background:#2a1f1f}
+    .btn.primary{background:#252525; border-color:#2f2f2f}
+    .btn.primary:hover{background:#2f2f2f}
+
+    .search{display:flex; gap:8px; align-items:center; margin-top:12px}
+    .input{width:100%; background:#181818; color:var(--ink); border:1px solid var(--edge); border-radius:10px; padding:10px 12px}
+
+    .tabs{display:flex; gap:6px; margin-top:16px; overflow:auto}
+    .tab{background:#181818; border:1px solid var(--edge); color:var(--muted); padding:10px 12px; border-radius:10px; cursor:pointer; white-space:nowrap}
+    .tab.active{color:var(--ink); border-color:#3a3a3a; background:#202020}
+
+    .page{display:none; margin-top:16px}
+    .page.active{display:block}
+
+    .panel{background:var(--panel); border:1px solid var(--edge); border-radius:14px; padding:18px; box-shadow:var(--shadow);}
+    .panel h2{margin:0 0 10px; font-size:18px; color:var(--ink)}
+    .panel h3{margin:18px 0 8px; font-size:15px; color:var(--muted)}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px}
+    .card{background:var(--panel-2); border:1px solid var(--edge); border-radius:12px; padding:14px}
+    .card.active{border:2px solid var(--accent)}
+    .card.dragging{opacity:0.5}
+    .row{display:flex; gap:10px; align-items:center}
+    .row.spread{justify-content:space-between}
+
+    label{font-size:12px; color:var(--muted)}
+    textarea{min-height:110px; resize:vertical}
+
+    .filter-row{display:flex; gap:8px; margin:12px 0}
+
+    .dock{position:fixed; left:0; right:0; bottom:0; background:#171717; border-top:1px solid var(--edge)}
+    .dock-inner{max-width:1200px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:10px}
+
+    .chip{background:var(--chip); border:1px solid var(--edge); border-radius:10px; padding:8px 10px; color:var(--muted)}
+
+    .hp{height:10px; border-radius:8px; background:#252525; border:1px solid var(--edge); overflow:hidden}
+    .hp > span{display:block; height:100%; background:var(--ok)}
+
+    .tag{display:inline-block; background:#232323; border:1px solid var(--edge); padding:2px 8px; border-radius:999px; font-size:12px; color:var(--muted); margin-right:6px}
+
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    @media (max-width:780px){.two{grid-template-columns:1fr}}
+
+    .hidden{display:none}
+    mark{background:#3a3a3a; color:var(--ink); padding:1px 2px}
+
+    dialog{max-width:90vw; width:100%; border:1px solid var(--edge); background:var(--panel); color:var(--ink); border-radius:12px; padding:0}
+    @media (max-width:600px){dialog .two{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-row">
+        <h1>Campaign Manager</h1>
+        <div class="tools">
+          <button class="btn" id="btn-rand" aria-label="Open random generators">Random Gen</button>
+          <button class="btn" id="btn-export" aria-label="Export campaign data">Export</button>
+          <input type="file" id="import-file" accept=".json" class="hidden" />
+          <button class="btn" id="btn-import" aria-label="Import campaign data">Import</button>
+          <button class="btn danger" id="btn-wipe" aria-label="Delete all campaign data">Delete All</button>
+        </div>
+      </div>
+      <div class="search">
+        <input class="input" id="global-search" placeholder="Search everything…" aria-label="Search campaign data" />
+        <button class="btn" id="btn-clear" aria-label="Clear search">Clear</button>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-page="p-campaign">Campaign</button>
+        <button class="tab" data-page="p-characters">Characters</button>
+        <button class="tab" data-page="p-plots">Plots</button>
+        <button class="tab" data-page="p-sessions">Sessions</button>
+        <button class="tab" data-page="p-locations">Locations</button>
+        <button class="tab" data-page="p-combat">Combat</button>
+        <button class="tab" data-page="p-timeline">Timeline</button>
+        <button class="tab" data-page="p-media">Show Players</button>
+      </div>
+    </header>
+
+    <!-- Campaign Page -->
+    <section class="page active" id="p-campaign">
+      <div class="panel">
+        <h2>Campaign Information</h2>
+        <div class="two">
+          <div>
+            <label>Campaign Name</label>
+            <input class="input" id="campaign-name" />
+          </div>
+          <div>
+            <label>Game System</label>
+            <input class="input" id="game-system" placeholder="Vaesen, D&D 5e, etc." />
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Setting</label>
+            <textarea class="input" id="campaign-setting"></textarea>
+          </div>
+          <div>
+            <label>Overview</label>
+            <textarea class="input" id="campaign-overview"></textarea>
+          </div>
+        </div>
+        <button class="btn primary" id="save-campaign" aria-label="Save campaign details">Save</button>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <h2>Quick Notes</h2>
+        <textarea class="input" id="quick-notes" placeholder="Scratchpad for ideas, NPC hooks, rulings…"></textarea>
+        <div class="row" style="margin-top:8px; gap:8px">
+          <button class="btn" id="save-quick" aria-label="Save quick notes">Save Notes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Characters Page -->
+    <section class="page" id="p-characters">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Characters & NPCs</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-characters" placeholder="Filter by name or note…" style="width:240px" aria-label="Filter characters" />
+            <button class="btn" id="add-char" aria-label="Add new character">Add Character</button>
+          </div>
+        </div>
+        <div class="grid" id="characters-list"></div>
+      </div>
+    </section>
+
+    <!-- Plots Page -->
+    <section class="page" id="p-plots">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Main Plots & Arcs</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-plots" placeholder="Filter plots…" style="width:240px" aria-label="Filter plots" />
+            <button class="btn" id="add-plot" aria-label="Add new plot">Add Plot</button>
+          </div>
+        </div>
+        <div id="plots-list" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Sessions Page -->
+    <section class="page" id="p-sessions">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Session Notes</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-sessions" placeholder="Filter sessions…" style="width:240px" aria-label="Filter sessions" />
+            <button class="btn" id="add-session" aria-label="Add new session">Add Session</button>
+          </div>
+        </div>
+        <div id="sessions-list" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Locations Page -->
+    <section class="page" id="p-locations">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Locations</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-locations" placeholder="Filter locations…" style="width:240px" aria-label="Filter locations" />
+            <button class="btn" id="add-location" aria-label="Add new location">Add Location</button>
+          </div>
+        </div>
+        <div id="locations-list" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Combat Page -->
+    <section class="page" id="p-combat">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Combat Tracker</h2>
+          <div class="row" style="gap:8px">
+            <button class="btn" id="add-combatant" aria-label="Add new combatant">Add Combatant</button>
+            <button class="btn" id="next-turn" aria-label="Advance to next turn">Next Turn ▶</button>
+            <button class="btn" id="sort-combat" aria-label="Sort combatants by initiative">Sort by Init</button>
+            <button class="btn danger" id="clear-combat" aria-label="Clear combat tracker">Clear</button>
+          </div>
+        </div>
+        <div class="row" style="gap:12px; margin-bottom:10px">
+          <span class="chip">Round: <b id="round">1</b></span>
+        </div>
+        <div id="combat-list" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Timeline Page -->
+    <section class="page" id="p-timeline">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Campaign Timeline</h2>
+          <button class="btn" id="add-event" aria-label="Add new timeline event">Add Event</button>
+        </div>
+        <div id="timeline-list" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- Media Page -->
+    <section class="page" id="p-media">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Media Gallery</h2>
+          <button class="btn" id="add-media" aria-label="Add new media">Add Media</button>
+        </div>
+        <div id="media-list" class="grid"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Bottom Dock Dice Roller -->
+  <div class="dock">
+    <div class="dock-inner">
+      <span class="chip">Dice</span>
+      <button class="btn" data-d="4" aria-label="Roll a d4">d4</button>
+      <button class="btn" data-d="6" aria-label="Roll a d6">d6</button>
+      <button class="btn" data-d="8" aria-label="Roll a d8">d8</button>
+      <button class="btn" data-d="10" aria-label="Roll a d10">d10</button>
+      <button class="btn" data-d="12" aria-label="Roll a d12">d12</button>
+      <button class="btn" data-d="20" aria-label="Roll a d20">d20</button>
+      <span class="chip" id="last-roll">–</span>
+    </div>
+  </div>
+
+  <!-- Dialogs -->
+  <dialog id="dlg-char">
+    <form method="dialog">
+      <div class="panel" style="border:none; border-radius:12px 12px 0 0">
+        <div class="row spread"><h2>Character</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div>
+            <label>Name *</label>
+            <input class="input" id="c-name" required />
+          </div>
+          <div>
+            <label>Archetype</label>
+            <input class="input" id="c-arch" placeholder="Doctor, Professor, Hunter…" />
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Age</label>
+            <input class="input" id="c-age" />
+          </div>
+          <div>
+            <label>Type</label>
+            <select class="input" id="c-type">
+              <option>PC</option><option>NPC</option><option>Vaesen</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Motivation</label>
+            <textarea class="input" id="c-motivation"></textarea>
+          </div>
+          <div>
+            <label>Dark Secret</label>
+            <textarea class="input" id="c-secret"></textarea>
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Trauma</label>
+            <textarea class="input" id="c-trauma"></textarea>
+          </div>
+          <div>
+            <label>Mementos</label>
+            <textarea class="input" id="c-mementos"></textarea>
+          </div>
+        </div>
+        <div>
+          <label>Relationships</label>
+          <textarea class="input" id="c-relationships" placeholder="Olof – Rival; Astrid – Protects"></textarea>
+        </div>
+        <div class="two">
+          <div>
+            <label>Resources (●)</label>
+            <input class="input" id="c-res" placeholder="0–5" />
+          </div>
+          <div>
+            <label>Experience (●)</label>
+            <input class="input" id="c-xp" placeholder="0–5" />
+          </div>
+        </div>
+        <div>
+          <label>Talents & Notes</label>
+          <textarea class="input" id="c-notes"></textarea>
+        </div>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="c-save" type="button" aria-label="Save character">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-plot">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Plot</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Title *</label>
+        <input class="input" id="p-title" required />
+        <div class="two">
+          <div>
+            <label>Type</label>
+            <select class="input" id="p-type"><option>Main</option><option>Subplot</option><option>Side Quest</option><option>Arc</option></select>
+          </div>
+          <div>
+            <label>Status</label>
+            <select class="input" id="p-status"><option>Active</option><option>Pending</option><option>Completed</option><option>Abandoned</option></select>
+          </div>
+        </div>
+        <label>Description</label>
+        <textarea class="input" id="p-desc"></textarea>
+        <label>Related (names)</label>
+        <input class="input" id="p-rel" placeholder="Characters/Locations linked here" />
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="p-save" type="button" aria-label="Save plot">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-session">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Session</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div><label>Session #</label><input class="input" id="s-num" type="number" min="1" /></div>
+          <div><label>Date</label><input class="input" id="s-date" type="date" /></div>
+        </div>
+        <label>Title</label>
+        <input class="input" id="s-title" />
+        <label>Notes</label>
+        <textarea class="input" id="s-notes"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="s-save" type="button" aria-label="Save session">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-location">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Location</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name *</label><input class="input" id="l-name" required />
+        <label>Type</label>
+        <select class="input" id="l-type"><option>City</option><option>Dungeon</option><option>Tavern</option><option>Wilderness</option><option>Building</option><option>Region</option><option>Other</option></select>
+        <label>Description</label><textarea class="input" id="l-desc"></textarea>
+        <label>Notable NPCs/Features</label><textarea class="input" id="l-notes"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="l-save" type="button" aria-label="Save location">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-combat">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Combatant</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name *</label><input class="input" id="cb-name" required />
+        <div class="two">
+          <div><label>Initiative</label><input class="input" id="cb-init" type="number" value="0" /></div>
+          <div><label>Armor</label><input class="input" id="cb-armor" type="number" value="0" /></div>
+        </div>
+        <div class="two">
+          <div><label>HP</label><input class="input" id="cb-hp" type="number" value="10" /></div>
+          <div><label>Max HP</label><input class="input" id="cb-max" type="number" value="10" /></div>
+        </div>
+        <label>Conditions/Notes</label><input class="input" id="cb-notes" />
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="cb-save" type="button" aria-label="Add combatant">Add</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-timeline">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Timeline Event</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Date/Session</label><input class="input" id="t-date" placeholder="Session 5, Day 23…" />
+        <label>Event *</label><input class="input" id="t-title" required />
+        <label>Description</label><textarea class="input" id="t-desc"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="t-save" type="button" aria-label="Save timeline event">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-media">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Media</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name</label><input class="input" id="m-name" />
+        <label>Category</label>
+        <select class="input" id="m-cat"><option>Map</option><option>Character Art</option><option>Scenery</option><option>Handout</option><option>Music/Sound</option><option>Other</option></select>
+        <label>Image File</label><input type="file" id="m-file" accept="image/*" class="input" />
+        <label>YouTube URL (optional)</label><input class="input" id="m-yt" placeholder="https://…" />
+        <label>Description</label><textarea class="input" id="m-desc"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="m-save" type="button" aria-label="Save media">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-generators">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Edit Generators</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div>
+            <label>Names (one per line)</label>
+            <textarea class="input" id="g-names"></textarea>
+          </div>
+          <div>
+            <label>Taverns (one per line)</label>
+            <textarea class="input" id="g-taverns"></textarea>
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Encounters (one per line)</label>
+            <textarea class="input" id="g-encounters"></textarea>
+          </div>
+          <div>
+            <label>Quirks (one per line)</label>
+            <textarea class="input" id="g-quirks"></textarea>
+          </div>
+        </div>
+        <div>
+          <label>NPC Secrets/Quirks (one per line)</label>
+          <textarea class="input" id="g-npcs"></textarea>
+        </div>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="g-save" type="button" aria-label="Save generators">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-rand">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread">
+          <h2>Random Generators</h2>
+          <div class="row" style="gap:8px">
+            <button class="btn" type="button" id="g-edit" aria-label="Edit generator lists">Edit Lists</button>
+            <button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <h3>Name</h3>
+            <button class="btn" type="button" id="g-name" aria-label="Generate random name">Generate</button>
+            <div class="chip" id="g-name-out">–</div>
+          </div>
+          <div class="card">
+            <h3>Tavern</h3>
+            <button class="btn" type="button" id="g-tavern" aria-label="Generate random tavern">Generate</button>
+            <div class="chip" id="g-tavern-out">–</div>
+          </div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div class="card">
+            <h3>Vaesen Encounter</h3>
+            <button class="btn" type="button" id="g-enc" aria-label="Generate random encounter">Generate</button>
+            <div class="chip" id="g-enc-out">–</div>
+          </div>
+          <div class="card">
+            <h3>Location Quirk</h3>
+            <button class="btn" type="button" id="g-quirk" aria-label="Generate random quirk">Generate</button>
+            <div class="chip" id="g-quirk-out">–</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>NPC Secret/Quirk</h3>
+          <button class="btn" type="button" id="g-npc" aria-label="Generate random NPC secret">Generate</button>
+          <div class="chip" id="g-npc-out">–</div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="hidden-file" class="hidden" />
+
+  <script>
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    const state = JSON.parse(localStorage.getItem('cm-data') || '{}');
+    state.campaign = state.campaign || { name: '', system: '', setting: '', overview: '', quickNotes: '' };
+    state.characters = state.characters || [];
+    state.plots = state.plots || [];
+    state.sessions = state.sessions || [];
+    state.locations = state.locations || [];
+    state.combat = state.combat || { round: 1, list: [], current: 0, manualOrder: false };
+    state.timeline = state.timeline || [];
+    state.media = state.media || [];
+    state.generators = state.generators || {
+      names: ['Astrid', 'Olof', 'Lovisa', 'Isak', 'Agnes', 'Sigrid', 'Henrik', 'Edda', 'Tova', 'Erik', 'Saga', 'Ivar'],
+      taverns: ['The Frosted Antler', 'Brass Lantern', 'Hushed Willow', 'The Old Millroom', 'Ivory Kettle'],
+      encounters: ['A grieving myling seeks recognition', 'Forest huldra trades secrets for a name', 'A church bell rings with no wind (rå)', 'Troll tracks circle the manor'],
+      quirks: ['Smells faintly of cinnamon', 'Floorboards creak rhythmically', 'Windows fog from the outside', 'A pendulum clock never ticks'],
+      npcs: ['Keeps a locket with a stranger’s portrait', 'Cannot cross running water', 'Laughs before bad news', 'Writes letters to a missing sibling']
+    };
+
+    const save = () => localStorage.setItem('cm-data', JSON.stringify(state));
+
+    // Focus trapping for accessibility
+    function trapFocus(dialog) {
+      const focusable = dialog.querySelectorAll('button, input, textarea, select');
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      dialog.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+    }
+    $$('dialog').forEach(d => d.addEventListener('open', () => trapFocus(d)));
+
+    // Highlight search matches
+    function highlight(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    // Tabs
+    $$('#tabs .tab').forEach(t => t.addEventListener('click', () => {
+      $$('#tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      $$('.page').forEach(p => p.classList.remove('active'));
+      const page = $(`#${t.dataset.page}`);
+      if (page) page.classList.add('active');
+      $('#global-search').value = ''; // Clear search on tab switch
+      performSearch();
+    }));
+
+    // Campaign
+    function renderCampaign() {
+      $('#campaign-name').value = state.campaign.name;
+      $('#game-system').value = state.campaign.system;
+      $('#campaign-setting').value = state.campaign.setting;
+      $('#campaign-overview').value = state.campaign.overview;
+      $('#quick-notes').value = state.campaign.quickNotes || '';
+    }
+    $('#save-campaign').addEventListener('click', () => {
+      state.campaign.name = $('#campaign-name').value.trim();
+      state.campaign.system = $('#game-system').value.trim();
+      state.campaign.setting = $('#campaign-setting').value.trim();
+      state.campaign.overview = $('#campaign-overview').value.trim();
+      save();
+    });
+    $('#save-quick').addEventListener('click', () => {
+      state.campaign.quickNotes = $('#quick-notes').value;
+      save();
+    });
+
+    // Characters
+    function charCard(c, i) {
+      const q = $('#filter-characters').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(c.name, q)}</strong><span class="tag">${highlight(c.type || '', q)}</span></div>
+        <div class="muted">${highlight(c.archetype || '', q)}</div>
+        ${c.motivation ? `<div class="chip">Motivation: ${highlight(c.motivation, q)}</div>` : ''}
+        ${c.secret ? `<div class="chip">Secret: ${highlight(c.secret, q)}</div>` : ''}
+        ${c.relationships ? `<div class="chip">Rel: ${highlight(c.relationships, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit character ${c.name}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete character ${c.name}">Delete</button>
+        </div>
+      `;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openChar(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${c.name}?`)) {
+          state.characters.splice(i, 1);
+          save();
+          renderCharacters();
+        }
+      });
+      return el;
+    }
+
+    function renderCharacters() {
+      const q = $('#filter-characters').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#characters-list');
+      host.innerHTML = '';
+      const filtered = state.characters.filter(c => !q || (c.name + ' ' + (c.notes || '') + ' ' + (c.archetype || '') + ' ' + (c.motivation || '') + ' ' + (c.secret || '') + ' ' + (c.relationships || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No characters found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((c, i) => host.appendChild(charCard(c, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((c, i) => host.appendChild(charCard(c, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-characters').addEventListener('input', renderCharacters);
+
+    function openChar(i) {
+      const d = $('#dlg-char');
+      const c = typeof i === 'number' ? state.characters[i] : {};
+      const isVaesen = state.campaign.system.toLowerCase().includes('vaesen');
+      $('#c-name').value = c.name || '';
+      $('#c-arch').value = c.archetype || '';
+      $('#c-age').value = c.age || '';
+      $('#c-type').value = c.type || 'PC';
+      $('#c-motivation').value = c.motivation || '';
+      $('#c-secret').value = c.secret || '';
+      $('#c-trauma').value = c.trauma || '';
+      $('#c-mementos').value = c.mementos || '';
+      $('#c-relationships').value = c.relationships || '';
+      $('#c-res').value = c.resources || '';
+      $('#c-xp').value = c.xp || '';
+      $('#c-notes').value = c.notes || '';
+      $('#dlg-char h2').textContent = isVaesen ? 'Vaesen Character' : 'Character';
+      d.showModal();
+      $('#c-save').onclick = () => {
+        const name = $('#c-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const obj = {
+          name,
+          archetype: $('#c-arch').value.trim(),
+          age: $('#c-age').value.trim(),
+          type: $('#c-type').value,
+          motivation: $('#c-motivation').value.trim(),
+          secret: $('#c-secret').value.trim(),
+          trauma: $('#c-trauma').value.trim(),
+          mementos: $('#c-mementos').value.trim(),
+          relationships: $('#c-relationships').value.trim(),
+          resources: $('#c-res').value.trim(),
+          xp: $('#c-xp').value.trim(),
+          notes: $('#c-notes').value.trim(),
+        };
+        if (typeof i === 'number') state.characters[i] = obj;
+        else state.characters.push(obj);
+        save();
+        renderCharacters();
+        d.close();
+      };
+    }
+
+    $('#add-char').addEventListener('click', () => openChar());
+
+    // Plots
+    function plotCard(p, i) {
+      const q = $('#filter-plots').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(p.title, q)}</strong><span class="tag">${highlight(p.type || '', q)} · ${highlight(p.status || '', q)}</span></div>
+        <div class="chip">${highlight(p.desc || '', q)}</div>
+        ${p.rel ? `<div class="chip">Related: ${highlight(p.rel, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit plot ${p.title}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete plot ${p.title}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openPlot(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${p.title}?`)) {
+          state.plots.splice(i, 1);
+          save();
+          renderPlots();
+        }
+      });
+      return el;
+    }
+
+    function renderPlots() {
+      const q = $('#filter-plots').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#plots-list');
+      host.innerHTML = '';
+      const filtered = state.plots.filter(p => !q || (p.title + ' ' + (p.desc || '') + ' ' + (p.rel || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No plots found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((p, i) => host.appendChild(plotCard(p, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((p, i) => host.appendChild(plotCard(p, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-plots').addEventListener('input', renderPlots);
+
+    function openPlot(i) {
+      const d = $('#dlg-plot');
+      const p = typeof i === 'number' ? state.plots[i] : {};
+      $('#p-title').value = p.title || '';
+      $('#p-type').value = p.type || 'Main';
+      $('#p-status').value = p.status || 'Active';
+      $('#p-desc').value = p.desc || '';
+      $('#p-rel').value = p.rel || '';
+      d.showModal();
+      $('#p-save').onclick = () => {
+        const title = $('#p-title').value.trim();
+        if (!title) {
+          alert('Title is required');
+          return;
+        }
+        const obj = { title, type: $('#p-type').value, status: $('#p-status').value, desc: $('#p-desc').value.trim(), rel: $('#p-rel').value.trim() };
+        if (typeof i === 'number') state.plots[i] = obj;
+        else state.plots.push(obj);
+        save();
+        renderPlots();
+        d.close();
+      };
+    }
+
+    $('#add-plot').addEventListener('click', () => openPlot());
+
+    // Sessions
+    function generateSessionSummary(s) {
+      const notes = (s.notes || '').toLowerCase();
+      const chars = state.characters.filter(c => notes.includes(c.name.toLowerCase())).map(c => c.name).join(', ') || 'None';
+      const plots = state.plots.filter(p => p.status === 'Active' && notes.includes(p.title.toLowerCase())).map(p => p.title).join(', ') || 'None';
+      const locations = state.locations.filter(l => notes.includes(l.name.toLowerCase())).map(l => l.name).join(', ') || 'None';
+      const summary = s.notes ? s.notes.slice(0, 100) + (s.notes.length > 100 ? '...' : '') : 'No notes provided';
+      return `
+Session #${s.num || '?'} - ${s.title || 'Untitled'} (${s.date || 'No date'})
+Summary:
+- Key Events: ${summary}
+- Involved Characters: ${chars}
+- Active Plots: ${plots}
+- Locations: ${locations}
+      `.trim();
+    }
+
+    function sessionCard(s, i) {
+      const q = $('#filter-sessions').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>#${s.num || '?'} – ${highlight(s.title || '', q)}</strong><span class="tag">${highlight(s.date || '', q)}</span></div>
+        <div class="chip">${highlight(s.notes || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit session ${s.title || s.num}">Edit</button>
+          <button class="btn" data-summary="${i}" aria-label="View summary for session ${s.title || s.num}">Summary</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete session ${s.title || s.num}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openSession(i));
+      el.querySelector('[data-summary]')?.addEventListener('click', () => alert(generateSessionSummary(s)));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete session #${s.num || '?'}${s.title ? ' - ' + s.title : ''}?`)) {
+          state.sessions.splice(i, 1);
+          save();
+          renderSessions();
+        }
+      });
+      return el;
+    }
+
+    function renderSessions() {
+      const q = $('#filter-sessions').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#sessions-list');
+      host.innerHTML = '';
+      const filtered = state.sessions.filter(s => !q || (String(s.num) + ' ' + (s.title || '') + ' ' + (s.notes || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No sessions found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((s, i) => host.appendChild(sessionCard(s, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((s, i) => host.appendChild(sessionCard(s, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-sessions').addEventListener('input', renderSessions);
+
+    function openSession(i) {
+      const d = $('#dlg-session');
+      const s = typeof i === 'number' ? state.sessions[i] : {};
+      $('#s-num').value = s.num || '';
+      $('#s-date').value = s.date || '';
+      $('#s-title').value = s.title || '';
+      $('#s-notes').value = s.notes || '';
+      d.showModal();
+      $('#s-save').onclick = () => {
+        const obj = { num: parseInt($('#s-num').value) || '', date: $('#s-date').value, title: $('#s-title').value.trim(), notes: $('#s-notes').value.trim() };
+        if (typeof i === 'number') state.sessions[i] = obj;
+        else state.sessions.push(obj);
+        save();
+        renderSessions();
+        d.close();
+      };
+    }
+
+    $('#add-session').addEventListener('click', () => openSession());
+
+    // Locations
+    function locationCard(l, i) {
+      const q = $('#filter-locations').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(l.name, q)}</strong><span class="tag">${highlight(l.type || '', q)}</span></div>
+        <div class="chip">${highlight(l.desc || '', q)}</div>
+        ${l.notes ? `<div class="chip">${highlight(l.notes, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit location ${l.name}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete location ${l.name}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openLocation(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${l.name}?`)) {
+          state.locations.splice(i, 1);
+          save();
+          renderLocations();
+        }
+      });
+      return el;
+    }
+
+    function renderLocations() {
+      const q = $('#filter-locations').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#locations-list');
+      host.innerHTML = '';
+      const filtered = state.locations.filter(l => !q || (l.name + ' ' + (l.desc || '') + ' ' + (l.notes || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No locations found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((l, i) => host.appendChild(locationCard(l, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((l, i) => host.appendChild(locationCard(l, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-locations').addEventListener('input', renderLocations);
+
+    function openLocation(i) {
+      const d = $('#dlg-location');
+      const l = typeof i === 'number' ? state.locations[i] : {};
+      $('#l-name').value = l.name || '';
+      $('#l-type').value = l.type || 'City';
+      $('#l-desc').value = l.desc || '';
+      $('#l-notes').value = l.notes || '';
+      d.showModal();
+      $('#l-save').onclick = () => {
+        const name = $('#l-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const obj = { name, type: $('#l-type').value, desc: $('#l-desc').value.trim(), notes: $('#l-notes').value.trim() };
+        if (typeof i === 'number') state.locations[i] = obj;
+        else state.locations.push(obj);
+        save();
+        renderLocations();
+        d.close();
+      };
+    }
+
+    $('#add-location').addEventListener('click', () => openLocation());
+
+    // Combat
+    function combatCard(c, i) {
+      const hpPct = Math.max(0, Math.min(100, Math.round(100 * (c.hp / (c.max || 1)))));
+      const el = document.createElement('div');
+      el.className = `card ${i === state.combat.current ? 'active' : ''}`;
+      el.setAttribute('draggable', 'true');
+      el.dataset.index = i;
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(c.name, $('#global-search').value.toLowerCase())}</strong><span class="tag">Init ${c.init || 0} · Armor ${c.armor || 0}</span></div>
+        <div class="hp" title="${c.hp}/${c.max}"><span style="width:${hpPct}%"></span></div>
+        ${c.notes ? `<div class="chip">${highlight(c.notes, $('#global-search').value.toLowerCase())}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-hit="${i}" aria-label="Reduce HP for ${c.name}">-1 HP</button>
+          <button class="btn" data-heal="${i}" aria-label="Increase HP for ${c.name}">+1 HP</button>
+          <button class="btn danger" data-del="${i}" aria-label="Remove ${c.name} from combat">Remove</button>
+        </div>`;
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', i);
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      el.addEventListener('dragover', e => e.preventDefault());
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        const fromIndex = +e.dataTransfer.getData('text/plain');
+        const toIndex = i;
+        if (fromIndex !== toIndex) {
+          const [combatant] = state.combat.list.splice(fromIndex, 1);
+          state.combat.list.splice(toIndex, 0, combatant);
+          state.combat.manualOrder = true;
+          if (state.combat.current === fromIndex) state.combat.current = toIndex;
+          else if (fromIndex < state.combat.current && toIndex >= state.combat.current) state.combat.current--;
+          else if (fromIndex > state.combat.current && toIndex <= state.combat.current) state.combat.current++;
+          save();
+          renderCombat();
+        }
+      });
+      el.querySelector('[data-hit]').addEventListener('click', () => {
+        state.combat.list[i].hp = Math.max(0, state.combat.list[i].hp - 1);
+        save();
+        renderCombat();
+      });
+      el.querySelector('[data-heal]').addEventListener('click', () => {
+        state.combat.list[i].hp = Math.min(state.combat.list[i].max, state.combat.list[i].hp + 1);
+        save();
+        renderCombat();
+      });
+      el.querySelector('[data-del]').addEventListener('click', () => {
+        if (confirm(`Remove ${c.name} from combat?`)) {
+          state.combat.list.splice(i, 1);
+          if (state.combat.current >= state.combat.list.length) state.combat.current = 0;
+          save();
+          renderCombat();
+        }
+      });
+      return el;
+    }
+
+    function renderCombat() {
+      $('#round').textContent = state.combat.round;
+      const host = $('#combat-list');
+      host.innerHTML = '';
+      if (state.combat.list.length === 0) {
+        host.innerHTML = '<div class="chip">No combatants</div>';
+        return;
+      }
+      const sorted = state.combat.manualOrder
+        ? state.combat.list
+        : [...state.combat.list].sort((a, b) => (b.init || 0) - (a.init || 0) || a.name.localeCompare(b.name));
+      sorted.forEach((c, i) => host.appendChild(combatCard(c, state.combat.list.indexOf(c))));
+    }
+
+    $('#add-combatant').addEventListener('click', () => {
+      const d = $('#dlg-combat');
+      d.showModal();
+      $('#cb-save').onclick = () => {
+        const name = $('#cb-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const hp = +$('#cb-hp').value || 10;
+        const max = +$('#cb-max').value || 10;
+        const obj = {
+          name,
+          init: +$('#cb-init').value || 0,
+          armor: +$('#cb-armor').value || 0,
+          hp: Math.max(0, Math.min(hp, max)),
+          max,
+          notes: $('#cb-notes').value.trim()
+        };
+        state.combat.list.push(obj);
+        state.combat.manualOrder = false;
+        save();
+        renderCombat();
+        d.close();
+      };
+    });
+
+    $('#next-turn').addEventListener('click', () => {
+      if (state.combat.list.length === 0) return;
+      state.combat.current = (state.combat.current + 1) % state.combat.list.length;
+      if (state.combat.current === 0) state.combat.round += 1;
+      save();
+      renderCombat();
+    });
+
+    $('#sort-combat').addEventListener('click', () => {
+      state.combat.manualOrder = false;
+      save();
+      renderCombat();
+    });
+
+    $('#clear-combat').addEventListener('click', () => {
+      if (confirm('Clear combat?')) {
+        state.combat = { round: 1, list: [], current: 0, manualOrder: false };
+        save();
+        renderCombat();
+      }
+    });
+
+    // Timeline
+    function timelineCard(t, i) {
+      const q = $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(t.title, q)}</strong><span class="tag">${highlight(t.date || '', q)}</span></div>
+        <div class="chip">${highlight(t.desc || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit event ${t.title}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete event ${t.title}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openEvent(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${t.title}?`)) {
+          state.timeline.splice(i, 1);
+          save();
+          renderTimeline();
+        }
+      });
+      return el;
+    }
+
+    function renderTimeline() {
+      const host = $('#timeline-list');
+      host.innerHTML = '';
+      if (state.timeline.length === 0) {
+        host.innerHTML = '<div class="chip">No timeline events</div>';
+        return;
+      }
+      state.timeline.forEach((t, i) => host.appendChild(timelineCard(t, i)));
+    }
+
+    function openEvent(i) {
+      const d = $('#dlg-timeline');
+      const t = typeof i === 'number' ? state.timeline[i] : {};
+      $('#t-date').value = t.date || '';
+      $('#t-title').value = t.title || '';
+      $('#t-desc').value = t.desc || '';
+      d.showModal();
+      $('#t-save').onclick = () => {
+        const title = $('#t-title').value.trim();
+        if (!title) {
+          alert('Event title is required');
+          return;
+        }
+        const obj = { date: $('#t-date').value, title, desc: $('#t-desc').value.trim() };
+        if (typeof i === 'number') state.timeline[i] = obj;
+        else state.timeline.push(obj);
+        save();
+        renderTimeline();
+        d.close();
+      };
+    }
+
+    $('#add-event').addEventListener('click', () => openEvent());
+
+    // Media
+    function mediaCard(m, i) {
+      const q = $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(m.name || '(untitled)', q)}</strong><span class="tag">${highlight(m.cat || '', q)}</span></div>
+        ${m.file ? `<img src="${m.file}" style="max-width:100%; border-radius:8px; margin-top:8px;" alt="${m.name || 'Media'}">` : ''}
+        ${m.yt ? `<div class="chip">${highlight(m.yt, q)}</div>` : ''}
+        <div class="chip">${highlight(m.desc || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit media ${m.name || 'untitled'}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete media ${m.name || 'untitled'}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]').addEventListener('click', () => openMedia(i));
+      el.querySelector('[data-del]').addEventListener('click', () => {
+        if (confirm(`Delete ${m.name || 'untitled media'}?`)) {
+          state.media.splice(i, 1);
+          save();
+          renderMedia();
+        }
+      });
+      return el;
+    }
+
+    function renderMedia() {
+      const host = $('#media-list');
+      host.innerHTML = '';
+      if (state.media.length === 0) {
+        host.innerHTML = '<div class="chip">No media</div>';
+        return;
+      }
+      state.media.forEach((m, i) => host.appendChild(mediaCard(m, i)));
+    }
+
+    function openMedia(i) {
+      const d = $('#dlg-media');
+      const m = typeof i === 'number' ? state.media[i] : {};
+      $('#m-name').value = m.name || '';
+      $('#m-cat').value = m.cat || 'Map';
+      $('#m-yt').value = m.yt || '';
+      $('#m-desc').value = m.desc || '';
+      $('#m-file').value = '';
+      d.showModal();
+      $('#m-save').onclick = () => {
+        const file = $('#m-file').files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const obj = {
+              name: $('#m-name').value.trim(),
+              cat: $('#m-cat').value,
+              yt: $('#m-yt').value.trim(),
+              desc: $('#m-desc').value.trim(),
+              file: reader.result
+            };
+            if (typeof i === 'number') state.media[i] = obj;
+            else state.media.push(obj);
+            save();
+            renderMedia();
+            d.close();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const obj = {
+            name: $('#m-name').value.trim(),
+            cat: $('#m-cat').value,
+            yt: $('#m-yt').value.trim(),
+            desc: $('#m-desc').value.trim(),
+            file: m.file || ''
+          };
+          if (typeof i === 'number') state.media[i] = obj;
+          else state.media.push(obj);
+          save();
+          renderMedia();
+          d.close();
+        }
+      };
+    }
+
+    $('#add-media').addEventListener('click', () => openMedia());
+
+    // Generators
+    function openGenerators() {
+      const d = $('#dlg-generators');
+      $('#g-names').value = state.generators.names.join('\n');
+      $('#g-taverns').value = state.generators.taverns.join('\n');
+      $('#g-encounters').value = state.generators.encounters.join('\n');
+      $('#g-quirks').value = state.generators.quirks.join('\n');
+      $('#g-npcs').value = state.generators.npcs.join('\n');
+      d.showModal();
+      $('#g-save').onclick = () => {
+        state.generators.names = $('#g-names').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.taverns = $('#g-taverns').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.encounters = $('#g-encounters').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.quirks = $('#g-quirks').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.npcs = $('#g-npcs').value.split('\n').map(s => s.trim()).filter(s => s);
+        save();
+        d.close();
+      };
+    }
+
+    $('#btn-rand').addEventListener('click', () => $('#dlg-rand').showModal());
+    $('#g-edit').addEventListener('click', () => {
+      $('#dlg-rand').close();
+      openGenerators();
+    });
+    const pick = a => a[Math.floor(Math.random() * a.length)] || '–';
+    $('#g-name').addEventListener('click', () => $('#g-name-out').textContent = pick(state.generators.names));
+    $('#g-tavern').addEventListener('click', () => $('#g-tavern-out').textContent = pick(state.generators.taverns));
+    $('#g-enc').addEventListener('click', () => $('#g-enc-out').textContent = pick(state.generators.encounters));
+    $('#g-quirk').addEventListener('click', () => $('#g-quirk-out').textContent = pick(state.generators.quirks));
+    $('#g-npc').addEventListener('click', () => $('#g-npc-out').textContent = pick(state.generators.npcs));
+
+    // Export/Import/Delete
+    $('#btn-export').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'campaign.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('#btn-import').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const data = JSON.parse(rd.result);
+          if (!data.campaign || !Array.isArray(data.characters) || !Array.isArray(data.plots) || !Array.isArray(data.sessions) || !Array.isArray(data.locations) || !Array.isArray(data.combat?.list) || !Array.isArray(data.timeline) || !Array.isArray(data.media)) {
+            throw new Error('Invalid data structure: missing or incorrect fields');
+          }
+          Object.assign(state, data);
+          save();
+          bootstrap();
+        } catch (err) {
+          alert(`Import failed: ${err.message}`);
+        }
+      };
+      rd.readAsText(file);
+    });
+
+    $('#btn-wipe').addEventListener('click', () => {
+      if (confirm('Delete ALL campaign data? This cannot be undone.')) {
+        localStorage.removeItem('cm-data');
+        location.reload();
+      }
+    });
+
+    // Global Search
+    function performSearch() {
+      const q = $('#global-search').value.toLowerCase();
+      const sections = [
+        { id: 'p-characters', data: state.characters, check: x => (x.name + ' ' + (x.notes || '') + ' ' + (x.archetype || '') + ' ' + (x.motivation || '') + ' ' + (x.secret || '') + ' ' + (x.relationships || '')).toLowerCase() },
+        { id: 'p-plots', data: state.plots, check: x => (x.title + ' ' + (x.desc || '') + ' ' + (x.rel || '')).toLowerCase() },
+        { id: 'p-sessions', data: state.sessions, check: x => (String(x.num) + ' ' + (x.title || '') + ' ' + (x.notes || '')).toLowerCase() },
+        { id: 'p-locations', data: state.locations, check: x => (x.name + ' ' + (x.desc || '') + ' ' + (x.notes || '')).toLowerCase() },
+        { id: 'p-timeline', data: state.timeline, check: x => (x.title + ' ' + (x.desc || '') + ' ' + (x.date || '')).toLowerCase() },
+        { id: 'p-media', data: state.media, check: x => ((x.name || '') + ' ' + (x.desc || '') + ' ' + (x.yt || '') + ' ' + (x.cat || '')).toLowerCase() }
+      ];
+      if (q) {
+        const matches = sections.map(s => ({ id: s.id, count: s.data.filter(x => s.check(x).includes(q)).length }));
+        const topMatch = matches.reduce((a, b) => a.count > b.count ? a : b, { id: '', count: 0 });
+        if (topMatch.count > 0) activate(topMatch.id);
+      }
+      renderCharacters();
+      renderPlots();
+      renderSessions();
+      renderLocations();
+      renderTimeline();
+      renderMedia();
+      renderCombat();
+    }
+
+    $('#global-search').addEventListener('input', performSearch);
+    $('#btn-clear').addEventListener('click', () => {
+      $('#global-search').value = '';
+      performSearch();
+    });
+
+    function activate(id) {
+      $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === id));
+      $$('.page').forEach(p => p.classList.toggle('active', p.id === id));
+    }
+
+    // Dice
+    $$('.dock [data-d]').forEach(b => b.addEventListener('click', () => {
+      const d = +b.dataset.d;
+      const n = 1 + Math.floor(Math.random() * d);
+      $('#last-roll').textContent = `d${d}: ${n}`;
+    }));
+
+    // Bootstrap
+    function bootstrap() {
+      renderCampaign();
+      renderCharacters();
+      renderPlots();
+      renderSessions();
+      renderLocations();
+      renderCombat();
+      renderTimeline();
+      renderMedia();
+    }
+    bootstrap();
+  </script>
+</body>
+</html>

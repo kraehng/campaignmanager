@@ -1,3068 +1,1342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GM Campaign Manager Pro</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #1e293b);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            color: #e2e8f0;
-            min-height: 100vh;
-            padding: 20px;
-            padding-bottom: 100px;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 50% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-            animation: float 20s ease-in-out infinite;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 0 100px rgba(59, 130, 246, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            z-index: 1;
-            animation: slideIn 0.6s ease-out;
-        }
-
-        header {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 10s ease infinite;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            animation: float 15s ease-in-out infinite;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 25px;
-            position: relative;
-            z-index: 1;
-        }
-
-        h1 {
-            font-size: 2.8em;
-            text-shadow: 
-                2px 2px 4px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(255, 255, 255, 0.2);
-            font-weight: 700;
-            letter-spacing: -1px;
-            background: linear-gradient(to right, #ffffff, #e0e7ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .header-tools {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .search-input {
-            padding: 14px 20px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            color: white;
-            font-size: 1em;
-            min-width: 350px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .search-input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .tool-btn {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .tool-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-
-        .tool-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .tabs {
-            display: flex;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border-bottom: 3px solid transparent;
-            border-image: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899) 1;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .tabs::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            opacity: 0.3;
-        }
-
-        .tab-button {
-            padding: 18px 28px;
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
-            position: relative;
-        }
-
-        .tab-button::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .tab-button:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: #e2e8f0;
-        }
-
-        .tab-button:hover::before {
-            width: 80%;
-        }
-
-        .tab-button.active {
-            color: #60a5fa;
-            background: rgba(59, 130, 246, 0.15);
-        }
-
-        .tab-button.active::before {
-            width: 100%;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 35px;
-            animation: slideIn 0.4s ease-out;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .section {
-            background: rgba(51, 65, 85, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .section:hover {
-            box-shadow: 
-                0 12px 40px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        h2 {
-            color: #60a5fa;
-            font-size: 2em;
-            margin-bottom: 12px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        h3 {
-            color: #93c5fd;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-
-        button {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        button:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
-        }
-
-        button:active {
-            transform: translateY(-1px);
-        }
-
-        button.delete-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            padding: 10px 20px;
-            font-size: 0.95em;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        button.delete-btn:hover {
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6);
-        }
-
-        button.secondary-btn {
-            background: linear-gradient(135deg, #64748b, #475569);
-            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.4);
-        }
-
-        button.secondary-btn:hover {
-            box-shadow: 0 8px 25px rgba(100, 116, 139, 0.6);
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 14px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(71, 85, 105, 0.5);
-            border-radius: 10px;
-            color: #e2e8f0;
-            font-size: 1em;
-            margin-bottom: 18px;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 
-                inset 0 2px 4px rgba(0, 0, 0, 0.2),
-                0 0 0 3px rgba(59, 130, 246, 0.2);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-            font-weight: 600;
-            font-size: 0.95em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .character-card, .plot-card, .session-card, .location-card, .item-card, .media-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border-left: 5px solid #3b82f6;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .character-card:hover, .plot-card:hover, .session-card:hover, 
-        .location-card:hover, .item-card:hover, .media-card:hover {
-            transform: translateX(8px) translateY(-2px);
-            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
-            border-left-width: 7px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .card-image {
-            width: 130px;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-right: 20px;
-            border: 3px solid rgba(59, 130, 246, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .card-image:hover {
-            transform: scale(1.05);
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-
-        .card-info {
-            flex: 1;
-        }
-
-        .card-name {
-            font-size: 1.6em;
-            color: #60a5fa;
-            margin-bottom: 8px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(96, 165, 250, 0.3);
-        }
-
-        .card-type {
-            color: #94a3b8;
-            font-size: 0.95em;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            margin: 18px 0;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(5px);
-            border-radius: 8px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .stat-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .stat-label {
-            font-weight: 600;
-            color: #94a3b8;
-        }
-
-        .stat-value {
-            color: #60a5fa;
-            font-weight: 700;
-            font-size: 1.1em;
-        }
-
-        .notes {
-            color: #cbd5e1;
-            line-height: 1.7;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(71, 85, 105, 0.5);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            overflow-y: auto;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: rgba(51, 65, 85, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 35px;
-            max-width: 850px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.6),
-                0 0 100px rgba(59, 130, 246, 0.2);
-            animation: slideIn 0.4s ease-out;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .close-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            font-size: 2em;
-            padding: 0;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-            background: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            transform: rotate(90deg);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        .image-preview {
-            max-width: 220px;
-            max-height: 220px;
-            border-radius: 12px;
-            margin-top: 12px;
-            border: 3px solid rgba(59, 130, 246, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #64748b;
-        }
-
-        .empty-state-icon {
-            font-size: 5em;
-            margin-bottom: 25px;
-            opacity: 0.4;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        /* Dice Roller Widget */
-        .dice-roller {
-            position: fixed;
-            bottom: 120px;
-            right: 25px;
-            background: rgba(51, 65, 85, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.5),
-                0 0 60px rgba(59, 130, 246, 0.2);
-            z-index: 100;
-            min-width: 300px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .dice-roller.minimized {
-            padding: 12px;
-            min-width: auto;
-        }
-
-        .dice-roller.minimized .dice-content {
-            display: none;
-        }
-
-        .dice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-
-        .dice-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .dice-btn {
-            padding: 12px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border: 2px solid #3b82f6;
-            color: #3b82f6;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .dice-btn:hover {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-        }
-
-        .dice-btn:active {
-            transform: scale(0.95);
-        }
-
-        .dice-result {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 18px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 1.3em;
-            color: #60a5fa;
-            font-weight: 700;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid rgba(59, 130, 246, 0.3);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Quick Notes */
-        .quick-notes {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(51, 65, 85, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 3px solid transparent;
-            border-image: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899) 1;
-            z-index: 99;
-            transition: all 0.3s ease;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .quick-notes.minimized .notes-content {
-            display: none;
-        }
-
-        .notes-header {
-            padding: 14px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            background: rgba(15, 23, 42, 0.8);
-            transition: all 0.3s ease;
-        }
-
-        .notes-header:hover {
-            background: rgba(15, 23, 42, 0.95);
-        }
-
-        .notes-content {
-            padding: 25px;
-        }
-
-        .notes-content textarea {
-            min-height: 100px;
-            margin-bottom: 12px;
-        }
-
-        /* Combat Tracker */
-        .combatant-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .combatant-item {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #3b82f6;
-            flex-wrap: wrap;
-            gap: 15px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .combatant-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
-        }
-
-        .combatant-item.active {
-            border-left-color: #10b981;
-            background: rgba(16, 185, 129, 0.15);
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .combatant-info {
-            flex: 1;
-            min-width: 280px;
-        }
-
-        .combatant-name {
-            font-size: 1.3em;
-            color: #60a5fa;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .combatant-stats {
-            display: flex;
-            gap: 18px;
-            color: #94a3b8;
-            font-size: 0.95em;
-            flex-wrap: wrap;
-            font-weight: 500;
-        }
-
-        .hp-bar {
-            width: 220px;
-            height: 24px;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 8px;
-            border: 2px solid rgba(59, 130, 246, 0.3);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .hp-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
-            transition: width 0.5s ease;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-        }
-
-        /* Timeline */
-        .timeline-container {
-            position: relative;
-            padding-left: 35px;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding: 24px;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 5px solid #3b82f6;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .timeline-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -42px;
-            top: 28px;
-            width: 16px;
-            height: 16px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 50%;
-            border: 4px solid rgba(51, 65, 85, 0.9);
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .timeline-date {
-            color: #60a5fa;
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 1.05em;
-        }
-
-        .timeline-event {
-            font-size: 1.15em;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        /* Media Gallery */
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .media-item {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 14px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .media-item:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-
-        .media-thumbnail {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            transition: all 0.4s ease;
-        }
-
-        .media-item:hover .media-thumbnail {
-            transform: scale(1.1);
-        }
-
-        .media-info {
-            padding: 18px;
-            background: rgba(30, 41, 59, 0.8);
-        }
-
-        .media-name {
-            font-weight: 700;
-            color: #60a5fa;
-            margin-bottom: 8px;
-            font-size: 1.05em;
-        }
-
-        .media-category {
-            color: #94a3b8;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .fullscreen-viewer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.97);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .fullscreen-viewer.active {
-            display: flex;
-        }
-
-        .fullscreen-content {
-            max-width: 95vw;
-            max-height: 95vh;
-            animation: slideIn 0.4s ease-out;
-        }
-
-        .fullscreen-content img, .fullscreen-content video {
-            max-width: 100%;
-            max-height: 90vh;
-            border-radius: 12px;
-            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
-        }
-
-        .fullscreen-close {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            font-size: 3em;
-            color: white;
-            cursor: pointer;
-            background: rgba(239, 68, 68, 0.3);
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .fullscreen-close:hover {
-            background: rgba(239, 68, 68, 0.6);
-            transform: rotate(90deg) scale(1.1);
-            box-shadow: 0 10px 40px rgba(239, 68, 68, 0.6);
-        }
-
-        /* Relationships */
-        .relationships {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid rgba(71, 85, 105, 0.5);
-        }
-
-        .relationship-tag {
-            display: inline-block;
-            background: rgba(59, 130, 246, 0.15);
-            padding: 6px 14px;
-            border-radius: 20px;
-            margin: 6px;
-            font-size: 0.9em;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .relationship-tag:hover {
-            background: rgba(59, 130, 246, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        /* Media Gallery Help Banner */
-        .help-banner {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .help-banner h3 {
-            color: white;
-            margin-bottom: 10px;
-            font-size: 1.3em;
-        }
-
-        .help-banner p {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0;
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-image {
-                width: 100px;
-                height: 100px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-
-            .search-input {
-                min-width: 200px;
-            }
-
-            .dice-roller {
-                right: 15px;
-                bottom: 110px;
-                min-width: 270px;
-            }
-
-            .header-tools {
-                width: 100%;
-            }
-
-            .search-bar {
-                width: 100%;
-            }
-
-            .search-input {
-                width: 100%;
-            }
-
-            .media-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-
-        @media (max-width: 768px) {
-            .two-column {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        small {
-            font-size: 0.85em;
-            color: #94a3b8;
-        }
-
-        .settings-icon {
-            font-size: 1.2em;
-            animation: float 3s ease-in-out infinite;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Manager – Matte</title>
+  <style>
+    :root{
+      --bg:#121212;           /* matte charcoal */
+      --panel:#1d1d1d;        /* flat graphite */
+      --panel-2:#202020;      /* slightly lighter */
+      --ink:#e6e1d9;          /* warm paper ink */
+      --muted:#b7b0a4;        /* soft beige-gray */
+      --accent:#c3a776;       /* muted brass */
+      --accent-2:#8d7854;     /* dull bronze */
+      --ok:#7fb07f;
+      --bad:#c26a6a;
+      --edge: #2a2a2a;
+      --chip:#2b2b2b;
+      --shadow: 0 4px 12px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink); background:var(--bg);
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+
+    header{
+      background:var(--panel); border:1px solid var(--edge); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);
+    }
+
+    .header-row{display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    h1{font-size:22px; margin:0; letter-spacing:.3px; color:var(--ink)}
+
+    .tools{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{
+      background:var(--chip); border:1px solid var(--edge); color:var(--ink);
+      padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; transition:transform .05s ease, background .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px); background:#2f2f2f}
+    .btn.danger{color:#f4cccc; border-color:#3a2626; background:#241a1a}
+    .btn.danger:hover{background:#2a1f1f}
+    .btn.primary{background:#252525; border-color:#2f2f2f}
+    .btn.primary:hover{background:#2f2f2f}
+
+    .search{display:flex; gap:8px; align-items:center; margin-top:12px}
+    .input{width:100%; background:#181818; color:var(--ink); border:1px solid var(--edge); border-radius:10px; padding:10px 12px}
+
+    .tabs{display:flex; gap:6px; margin-top:16px; overflow:auto}
+    .tab{background:#181818; border:1px solid var(--edge); color:var(--muted); padding:10px 12px; border-radius:10px; cursor:pointer; white-space:nowrap}
+    .tab.active{color:var(--ink); border-color:#3a3a3a; background:#202020}
+
+    .page{display:none; margin-top:16px}
+    .page.active{display:block}
+
+    .panel{background:var(--panel); border:1px solid var(--edge); border-radius:14px; padding:18px; box-shadow:var(--shadow);}
+    .panel h2{margin:0 0 10px; font-size:18px; color:var(--ink)}
+    .panel h3{margin:18px 0 8px; font-size:15px; color:var(--muted)}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px}
+    .card{background:var(--panel-2); border:1px solid var(--edge); border-radius:12px; padding:14px}
+    .card.active{border:2px solid var(--accent)}
+    .card.dragging{opacity:0.5}
+    .row{display:flex; gap:10px; align-items:center}
+    .row.spread{justify-content:space-between}
+
+    label{font-size:12px; color:var(--muted)}
+    textarea{min-height:110px; resize:vertical}
+
+    .filter-row{display:flex; gap:8px; margin:12px 0}
+
+    .dock{position:fixed; left:0; right:0; bottom:0; background:#171717; border-top:1px solid var(--edge)}
+    .dock-inner{max-width:1200px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:10px}
+
+    .chip{background:var(--chip); border:1px solid var(--edge); border-radius:10px; padding:8px 10px; color:var(--muted)}
+
+    .hp{height:10px; border-radius:8px; background:#252525; border:1px solid var(--edge); overflow:hidden}
+    .hp > span{display:block; height:100%; background:var(--ok)}
+
+    .tag{display:inline-block; background:#232323; border:1px solid var(--edge); padding:2px 8px; border-radius:999px; font-size:12px; color:var(--muted); margin-right:6px}
+
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    @media (max-width:780px){.two{grid-template-columns:1fr}}
+
+    .hidden{display:none}
+    mark{background:#3a3a3a; color:var(--ink); padding:1px 2px}
+
+    dialog{max-width:90vw; width:100%; border:1px solid var(--edge); background:var(--panel); color:var(--ink); border-radius:12px; padding:0}
+    @media (max-width:600px){dialog .two{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-top">
-                <h1>⚔️ GM Campaign Manager Pro</h1>
-                <div class="header-tools">
-                    <button class="tool-btn" onclick="openRandomGenerator()">🎲 Random Gen</button>
-                    <button class="tool-btn" onclick="exportData()">💾 Export</button>
-                    <button class="tool-btn" onclick="document.getElementById('import-file').click()">📂 Import</button>
-                    <button class="tool-btn" onclick="openSettings()" title="Settings"><span class="settings-icon">⚙️</span></button>
-                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
-                </div>
-            </div>
-            <div class="search-bar">
-                <input type="text" class="search-input" id="global-search" placeholder="🔍 Search everything..." oninput="performSearch()">
-                <button class="tool-btn" onclick="clearSearch()">Clear</button>
-            </div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-button active" data-tab="campaign">📜 Campaign</button>
-            <button class="tab-button" data-tab="characters">👥 Characters</button>
-            <button class="tab-button" data-tab="plots">📖 Plots</button>
-            <button class="tab-button" data-tab="sessions">🎲 Sessions</button>
-            <button class="tab-button" data-tab="locations">🗺️ Locations</button>
-            <button class="tab-button" data-tab="items">⚔️ Items</button>
-            <button class="tab-button" data-tab="combat">⚔️ Combat</button>
-            <button class="tab-button" data-tab="timeline">📅 Timeline</button>
-            <button class="tab-button" data-tab="media">🖼️ Show Players</button>
+  <div class="container">
+    <header>
+      <div class="header-row">
+        <h1>Campaign Manager</h1>
+        <div class="tools">
+          <button class="btn" id="btn-rand" aria-label="Open random generators">Random Gen</button>
+          <button class="btn" id="btn-export" aria-label="Export campaign data">Export</button>
+          <input type="file" id="import-file" accept=".json" class="hidden" />
+          <button class="btn" id="btn-import" aria-label="Import campaign data">Import</button>
+          <button class="btn danger" id="btn-wipe" aria-label="Delete all campaign data">Delete All</button>
         </div>
+      </div>
+      <div class="search">
+        <input class="input" id="global-search" placeholder="Search everything…" aria-label="Search campaign data" />
+        <button class="btn" id="btn-clear" aria-label="Clear search">Clear</button>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-page="p-campaign">Campaign</button>
+        <button class="tab" data-page="p-characters">Characters</button>
+        <button class="tab" data-page="p-plots">Plots</button>
+        <button class="tab" data-page="p-sessions">Sessions</button>
+        <button class="tab" data-page="p-locations">Locations</button>
+        <button class="tab" data-page="p-combat">Combat</button>
+        <button class="tab" data-page="p-timeline">Timeline</button>
+        <button class="tab" data-page="p-media">Show Players</button>
+      </div>
+    </header>
 
-        <!-- Campaign Info Tab -->
-        <div id="campaign" class="tab-content active">
-            <div class="section">
-                <h2>Campaign Information</h2>
-                <div class="form-group">
-                    <label>Campaign Name</label>
-                    <input type="text" id="campaign-name" placeholder="Enter campaign name">
-                </div>
-                <div class="form-group">
-                    <label>Game System</label>
-                    <input type="text" id="game-system" placeholder="D&D 5e, Pathfinder, etc.">
-                </div>
-                <div class="form-group">
-                    <label>Setting</label>
-                    <textarea id="campaign-setting" placeholder="Describe your campaign setting..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Campaign Overview</label>
-                    <textarea id="campaign-overview" placeholder="General campaign notes and overview..."></textarea>
-                </div>
-                <button onclick="saveCampaignInfo()">💾 Save Campaign Info</button>
-            </div>
+    <!-- Campaign Page -->
+    <section class="page active" id="p-campaign">
+      <div class="panel">
+        <h2>Campaign Information</h2>
+        <div class="two">
+          <div>
+            <label>Campaign Name</label>
+            <input class="input" id="campaign-name" />
+          </div>
+          <div>
+            <label>Game System</label>
+            <input class="input" id="game-system" placeholder="Vaesen, D&D 5e, etc." />
+          </div>
         </div>
+        <div class="two">
+          <div>
+            <label>Setting</label>
+            <textarea class="input" id="campaign-setting"></textarea>
+          </div>
+          <div>
+            <label>Overview</label>
+            <textarea class="input" id="campaign-overview"></textarea>
+          </div>
+        </div>
+        <button class="btn primary" id="save-campaign" aria-label="Save campaign details">Save</button>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <h2>Quick Notes</h2>
+        <textarea class="input" id="quick-notes" placeholder="Scratchpad for ideas, NPC hooks, rulings…"></textarea>
+        <div class="row" style="margin-top:8px; gap:8px">
+          <button class="btn" id="save-quick" aria-label="Save quick notes">Save Notes</button>
+        </div>
+      </div>
+    </section>
 
-        <!-- Characters Tab -->
-        <div id="characters" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Characters & NPCs</h2>
-                    <button onclick="openCharacterModal()">➕ Add Character</button>
-                </div>
-                <div id="characters-list"></div>
-            </div>
+    <!-- Characters Page -->
+    <section class="page" id="p-characters">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Characters & NPCs</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-characters" placeholder="Filter by name or note…" style="width:240px" aria-label="Filter characters" />
+            <button class="btn" id="add-char" aria-label="Add new character">Add Character</button>
+          </div>
         </div>
+        <div class="grid" id="characters-list"></div>
+      </div>
+    </section>
 
-        <!-- Plots Tab -->
-        <div id="plots" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Main Plots & Story Arcs</h2>
-                    <button onclick="openPlotModal()">➕ Add Plot</button>
-                </div>
-                <div id="plots-list"></div>
-            </div>
+    <!-- Plots Page -->
+    <section class="page" id="p-plots">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Main Plots & Arcs</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-plots" placeholder="Filter plots…" style="width:240px" aria-label="Filter plots" />
+            <button class="btn" id="add-plot" aria-label="Add new plot">Add Plot</button>
+          </div>
         </div>
+        <div id="plots-list" class="grid"></div>
+      </div>
+    </section>
 
-        <!-- Sessions Tab -->
-        <div id="sessions" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Session Notes</h2>
-                    <button onclick="openSessionModal()">➕ Add Session</button>
-                </div>
-                <div id="sessions-list"></div>
-            </div>
+    <!-- Sessions Page -->
+    <section class="page" id="p-sessions">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Session Notes</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-sessions" placeholder="Filter sessions…" style="width:240px" aria-label="Filter sessions" />
+            <button class="btn" id="add-session" aria-label="Add new session">Add Session</button>
+          </div>
         </div>
+        <div id="sessions-list" class="grid"></div>
+      </div>
+    </section>
 
-        <!-- Locations Tab -->
-        <div id="locations" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Locations</h2>
-                    <button onclick="openLocationModal()">➕ Add Location</button>
-                </div>
-                <div id="locations-list"></div>
-            </div>
+    <!-- Locations Page -->
+    <section class="page" id="p-locations">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Locations</h2>
+          <div class="row" style="gap:8px">
+            <input class="input" id="filter-locations" placeholder="Filter locations…" style="width:240px" aria-label="Filter locations" />
+            <button class="btn" id="add-location" aria-label="Add new location">Add Location</button>
+          </div>
         </div>
+        <div id="locations-list" class="grid"></div>
+      </div>
+    </section>
 
-        <!-- Items Tab -->
-        <div id="items" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Items & Loot</h2>
-                    <button onclick="openItemModal()">➕ Add Item</button>
-                </div>
-                <div id="items-list"></div>
-            </div>
+    <!-- Combat Page -->
+    <section class="page" id="p-combat">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Combat Tracker</h2>
+          <div class="row" style="gap:8px">
+            <button class="btn" id="add-combatant" aria-label="Add new combatant">Add Combatant</button>
+            <button class="btn" id="next-turn" aria-label="Advance to next turn">Next Turn ▶</button>
+            <button class="btn" id="sort-combat" aria-label="Sort combatants by initiative">Sort by Init</button>
+            <button class="btn danger" id="clear-combat" aria-label="Clear combat tracker">Clear</button>
+          </div>
         </div>
+        <div class="row" style="gap:12px; margin-bottom:10px">
+          <span class="chip">Round: <b id="round">1</b></span>
+        </div>
+        <div id="combat-list" class="grid"></div>
+      </div>
+    </section>
 
-        <!-- Combat Tracker Tab -->
-        <div id="combat" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Combat Tracker</h2>
-                    <div class="btn-group">
-                        <button onclick="openCombatantModal()">➕ Add Combatant</button>
-                        <button onclick="nextTurn()" style="background: linear-gradient(135deg, #10b981, #34d399);">▶️ Next Turn</button>
-                        <button onclick="clearCombat()" class="delete-btn">Clear Combat</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Round: <span id="combat-round" style="color: #60a5fa; font-size: 1.2em;">1</span></label>
-                </div>
-                <div id="combat-list"></div>
-            </div>
+    <!-- Timeline Page -->
+    <section class="page" id="p-timeline">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Campaign Timeline</h2>
+          <button class="btn" id="add-event" aria-label="Add new timeline event">Add Event</button>
         </div>
+        <div id="timeline-list" class="grid"></div>
+      </div>
+    </section>
 
-        <!-- Timeline Tab -->
-        <div id="timeline" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2>Campaign Timeline</h2>
-                    <button onclick="openTimelineModal()">➕ Add Event</button>
-                </div>
-                <div class="timeline-container" id="timeline-list"></div>
-            </div>
+    <!-- Media Page -->
+    <section class="page" id="p-media">
+      <div class="panel">
+        <div class="row spread">
+          <h2>Media Gallery</h2>
+          <button class="btn" id="add-media" aria-label="Add new media">Add Media</button>
         </div>
+        <div id="media-list" class="grid"></div>
+      </div>
+    </section>
+  </div>
 
-        <!-- Media Gallery Tab -->
-        <div id="media" class="tab-content">
-            <div class="help-banner">
-                <h3>📸 Show Your Players!</h3>
-                <p>Upload maps, character art, scenery, and videos to share during sessions. Click any image to show it fullscreen to your players!</p>
-            </div>
-            <div class="section">
-                <div class="section-header">
-                    <h2>Media Gallery</h2>
-                    <button onclick="openMediaModal()">➕ Add Media</button>
-                </div>
-                <div class="media-grid" id="media-list"></div>
-            </div>
-        </div>
+  <!-- Bottom Dock Dice Roller -->
+  <div class="dock">
+    <div class="dock-inner">
+      <span class="chip">Dice</span>
+      <button class="btn" data-d="4" aria-label="Roll a d4">d4</button>
+      <button class="btn" data-d="6" aria-label="Roll a d6">d6</button>
+      <button class="btn" data-d="8" aria-label="Roll a d8">d8</button>
+      <button class="btn" data-d="10" aria-label="Roll a d10">d10</button>
+      <button class="btn" data-d="12" aria-label="Roll a d12">d12</button>
+      <button class="btn" data-d="20" aria-label="Roll a d20">d20</button>
+      <span class="chip" id="last-roll">–</span>
     </div>
+  </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Settings</h2>
-                <button class="close-btn" onclick="closeSettings()">×</button>
-            </div>
-            <div class="section">
-                <h3>⚠️ Danger Zone</h3>
-                <p style="color: #94a3b8; margin-bottom: 20px;">This action cannot be undone. Make sure to export your data first!</p>
-                <button onclick="deleteAllData()" class="delete-btn" style="font-size: 1.1em; padding: 16px 32px;">
-                    🗑️ Delete All Campaign Data
-                </button>
-            </div>
+  <!-- Dialogs -->
+  <dialog id="dlg-char">
+    <form method="dialog">
+      <div class="panel" style="border:none; border-radius:12px 12px 0 0">
+        <div class="row spread"><h2>Character</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div>
+            <label>Name *</label>
+            <input class="input" id="c-name" required />
+          </div>
+          <div>
+            <label>Archetype</label>
+            <input class="input" id="c-arch" placeholder="Doctor, Professor, Hunter…" />
+          </div>
         </div>
-    </div>
-
-    <!-- Character Modal (same as before, just prettier styling applies) -->
-    <div id="character-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add/Edit Character</h2>
-                <button class="close-btn" onclick="closeCharacterModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Character Name *</label>
-                <input type="text" id="char-name" required>
-            </div>
-            <div class="form-group">
-                <label>Type</label>
-                <select id="char-type">
-                    <option value="PC">Player Character</option>
-                    <option value="NPC">Non-Player Character</option>
-                    <option value="Enemy">Enemy/Antagonist</option>
-                    <option value="Ally">Ally</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Character Image</label>
-                <input type="file" id="char-image" accept="image/*" onchange="previewImage(this, 'char-image-preview')">
-                <img id="char-image-preview" class="image-preview" style="display:none;">
-            </div>
-            <div class="form-group">
-                <label>Stats (JSON format for combat tracker integration)</label>
-                <textarea id="char-stats" placeholder='{"HP": 45, "AC": 16, "STR": 14, "DEX": 12, "Initiative": 2}'></textarea>
-                <small>💡 Use JSON format for best combat tracker integration!</small>
-            </div>
-            <div class="form-group">
-                <label>Notes & Description</label>
-                <textarea id="char-notes" placeholder="Character background, personality, goals, etc."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Relationships</label>
-                <textarea id="char-relationships" placeholder="Allied with X, Enemy of Y, etc."></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveCharacter()">💾 Save Character</button>
-                <button onclick="closeCharacterModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div class="two">
+          <div>
+            <label>Age</label>
+            <input class="input" id="c-age" />
+          </div>
+          <div>
+            <label>Type</label>
+            <select class="input" id="c-type">
+              <option>PC</option><option>NPC</option><option>Vaesen</option><option>Other</option>
+            </select>
+          </div>
         </div>
-    </div>
-
-    <!-- Plot Modal -->
-    <div id="plot-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add/Edit Plot</h2>
-                <button class="close-btn" onclick="closePlotModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Plot Title *</label>
-                <input type="text" id="plot-title" required>
-            </div>
-            <div class="two-column">
-                <div class="form-group">
-                    <label>Type</label>
-                    <select id="plot-type">
-                        <option value="Main">Main Plot</option>
-                        <option value="Subplot">Subplot</option>
-                        <option value="Side Quest">Side Quest</option>
-                        <option value="Arc">Story Arc</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="plot-status">
-                        <option value="Active">Active</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Abandoned">Abandoned</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="plot-description" placeholder="Plot details, objectives, key events..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Related Characters</label>
-                <input type="text" id="plot-characters" placeholder="Character names involved in this plot">
-            </div>
-            <div class="btn-group">
-                <button onclick="savePlot()">💾 Save Plot</button>
-                <button onclick="closePlotModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div class="two">
+          <div>
+            <label>Motivation</label>
+            <textarea class="input" id="c-motivation"></textarea>
+          </div>
+          <div>
+            <label>Dark Secret</label>
+            <textarea class="input" id="c-secret"></textarea>
+          </div>
         </div>
-    </div>
-
-    <!-- Session Modal -->
-    <div id="session-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add/Edit Session</h2>
-                <button class="close-btn" onclick="closeSessionModal()">×</button>
-            </div>
-            <div class="two-column">
-                <div class="form-group">
-                    <label>Session Number</label>
-                    <input type="number" id="session-number" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Session Date</label>
-                    <input type="date" id="session-date">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Session Title</label>
-                <input type="text" id="session-title" placeholder="Enter session title">
-            </div>
-            <div class="form-group">
-                <label>Session Notes</label>
-                <textarea id="session-notes" placeholder="What happened this session..."></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveSession()">💾 Save Session</button>
-                <button onclick="closeSessionModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div class="two">
+          <div>
+            <label>Trauma</label>
+            <textarea class="input" id="c-trauma"></textarea>
+          </div>
+          <div>
+            <label>Mementos</label>
+            <textarea class="input" id="c-mementos"></textarea>
+          </div>
         </div>
-    </div>
-
-    <!-- Location Modal -->
-    <div id="location-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add/Edit Location</h2>
-                <button class="close-btn" onclick="closeLocationModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Location Name *</label>
-                <input type="text" id="location-name" required>
-            </div>
-            <div class="form-group">
-                <label>Location Type</label>
-                <select id="location-type">
-                    <option value="City">City</option>
-                    <option value="Dungeon">Dungeon</option>
-                    <option value="Tavern">Tavern</option>
-                    <option value="Wilderness">Wilderness</option>
-                    <option value="Building">Building</option>
-                    <option value="Region">Region</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Location Image/Map</label>
-                <input type="file" id="location-image" accept="image/*" onchange="previewImage(this, 'location-image-preview')">
-                <img id="location-image-preview" class="image-preview" style="display:none;">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="location-description" placeholder="Describe this location..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Notable NPCs/Features</label>
-                <textarea id="location-notes" placeholder="Who's here? What's important?"></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveLocation()">💾 Save Location</button>
-                <button onclick="closeLocationModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div>
+          <label>Relationships</label>
+          <textarea class="input" id="c-relationships" placeholder="Olof – Rival; Astrid – Protects"></textarea>
         </div>
-    </div>
-
-    <!-- Item Modal -->
-    <div id="item-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add/Edit Item</h2>
-                <button class="close-btn" onclick="closeItemModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Item Name *</label>
-                <input type="text" id="item-name" required>
-            </div>
-            <div class="two-column">
-                <div class="form-group">
-                    <label>Type</label>
-                    <select id="item-type">
-                        <option value="Weapon">Weapon</option>
-                        <option value="Armor">Armor</option>
-                        <option value="Magic Item">Magic Item</option>
-                        <option value="Potion">Potion</option>
-                        <option value="Quest Item">Quest Item</option>
-                        <option value="Treasure">Treasure</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Owner/Location</label>
-                    <input type="text" id="item-owner" placeholder="Who has it?">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Item Image</label>
-                <input type="file" id="item-image" accept="image/*" onchange="previewImage(this, 'item-image-preview')">
-                <img id="item-image-preview" class="image-preview" style="display:none;">
-            </div>
-            <div class="form-group">
-                <label>Description & Properties</label>
-                <textarea id="item-description" placeholder="What does it do? Special properties?"></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveItem()">💾 Save Item</button>
-                <button onclick="closeItemModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div class="two">
+          <div>
+            <label>Resources (●)</label>
+            <input class="input" id="c-res" placeholder="0–5" />
+          </div>
+          <div>
+            <label>Experience (●)</label>
+            <input class="input" id="c-xp" placeholder="0–5" />
+          </div>
         </div>
-    </div>
-
-    <!-- Combatant Modal -->
-    <div id="combatant-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Combatant</h2>
-                <button class="close-btn" onclick="closeCombatantModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Load from Character</label>
-                <select id="combatant-character" onchange="loadCharacterStats()">
-                    <option value="">-- Manual Entry --</option>
-                </select>
-                <small>💡 Select a character to auto-fill their stats!</small>
-            </div>
-            <div class="form-group">
-                <label>Name *</label>
-                <input type="text" id="combatant-name" required>
-            </div>
-            <div class="two-column">
-                <div class="form-group">
-                    <label>Initiative</label>
-                    <input type="number" id="combatant-initiative" value="0">
-                </div>
-                <div class="form-group">
-                    <label>HP</label>
-                    <input type="number" id="combatant-hp" value="10">
-                </div>
-            </div>
-            <div class="two-column">
-                <div class="form-group">
-                    <label>Max HP</label>
-                    <input type="number" id="combatant-max-hp" value="10">
-                </div>
-                <div class="form-group">
-                    <label>AC</label>
-                    <input type="number" id="combatant-ac" value="10">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Conditions/Notes</label>
-                <input type="text" id="combatant-conditions" placeholder="Poisoned, Blessed, etc.">
-            </div>
-            <div class="btn-group">
-                <button onclick="saveCombatant()">➕ Add to Combat</button>
-                <button onclick="closeCombatantModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div>
+          <label>Talents & Notes</label>
+          <textarea class="input" id="c-notes"></textarea>
         </div>
-    </div>
-
-    <!-- Timeline Modal -->
-    <div id="timeline-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Timeline Event</h2>
-                <button class="close-btn" onclick="closeTimelineModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Date/Session</label>
-                <input type="text" id="timeline-date" placeholder="Session 5, Day 23, etc.">
-            </div>
-            <div class="form-group">
-                <label>Event Title *</label>
-                <input type="text" id="timeline-event" required>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="timeline-description" placeholder="What happened?"></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveTimelineEvent()">💾 Save Event</button>
-                <button onclick="closeTimelineModal()" class="secondary-btn">Cancel</button>
-            </div>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="c-save" type="button" aria-label="Save character">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
         </div>
-    </div>
+      </div>
+    </form>
+  </dialog>
 
-    <!-- Media Modal -->
-    <div id="media-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Media</h2>
-                <button class="close-btn" onclick="closeMediaModal()">×</button>
-            </div>
-            <div class="form-group">
-                <label>Media Name</label>
-                <input type="text" id="media-name" placeholder="Name this media">
-            </div>
-            <div class="form-group">
-                <label>Category</label>
-                <select id="media-category">
-                    <option value="Map">Map</option>
-                    <option value="Character Art">Character Art</option>
-                    <option value="Scenery">Scenery</option>
-                    <option value="Handout">Handout</option>
-                    <option value="Music/Sound">Music/Sound</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Upload Image/Video</label>
-                <input type="file" id="media-file" accept="image/*,video/*" onchange="previewMedia(this)">
-                <div id="media-preview" style="margin-top: 10px;"></div>
-                <small>⚠️ Large videos may slow down the app</small>
-            </div>
-            <div class="form-group">
-                <label>OR YouTube URL</label>
-                <input type="text" id="media-youtube" placeholder="https://www.youtube.com/watch?v=...">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="media-description" placeholder="Notes about this media"></textarea>
-            </div>
-            <div class="btn-group">
-                <button onclick="saveMedia()">💾 Save Media</button>
-                <button onclick="closeMediaModal()" class="secondary-btn">Cancel</button>
-            </div>
+  <dialog id="dlg-plot">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Plot</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Title *</label>
+        <input class="input" id="p-title" required />
+        <div class="two">
+          <div>
+            <label>Type</label>
+            <select class="input" id="p-type"><option>Main</option><option>Subplot</option><option>Side Quest</option><option>Arc</option></select>
+          </div>
+          <div>
+            <label>Status</label>
+            <select class="input" id="p-status"><option>Active</option><option>Pending</option><option>Completed</option><option>Abandoned</option></select>
+          </div>
         </div>
-    </div>
-
-    <!-- Random Generator Modal -->
-    <div id="random-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Random Generators</h2>
-                <button class="close-btn" onclick="closeRandomModal()">×</button>
-            </div>
-            <div class="section">
-                <h3>🧙 NPC Name Generator</h3>
-                <div class="btn-group">
-                    <button onclick="generateRandom('name')">Generate Name</button>
-                </div>
-                <div id="random-name-result" style="margin-top: 15px; padding: 20px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 10px; min-height: 60px; color: #60a5fa; font-size: 1.3em; font-weight: 700; text-align: center; border: 2px solid rgba(59, 130, 246, 0.3);"></div>
-            </div>
-            <div class="section">
-                <h3>🍺 Tavern Name Generator</h3>
-                <div class="btn-group">
-                    <button onclick="generateRandom('tavern')">Generate Tavern</button>
-                </div>
-                <div id="random-tavern-result" style="margin-top: 15px; padding: 20px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 10px; min-height: 60px; color: #60a5fa; font-size: 1.3em; font-weight: 700; text-align: center; border: 2px solid rgba(59, 130, 246, 0.3);"></div>
-            </div>
-            <div class="section">
-                <h3>⚔️ Encounter Idea Generator</h3>
-                <div class="btn-group">
-                    <button onclick="generateRandom('encounter')">Generate Encounter</button>
-                </div>
-                <div id="random-encounter-result" style="margin-top: 15px; padding: 20px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 10px; min-height: 60px; color: #60a5fa; font-size: 1.15em; font-weight: 600; border: 2px solid rgba(59, 130, 246, 0.3);"></div>
-            </div>
+        <label>Description</label>
+        <textarea class="input" id="p-desc"></textarea>
+        <label>Related (names)</label>
+        <input class="input" id="p-rel" placeholder="Characters/Locations linked here" />
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="p-save" type="button" aria-label="Save plot">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
         </div>
-    </div>
+      </div>
+    </form>
+  </dialog>
 
-    <!-- Fullscreen Media Viewer -->
-    <div id="fullscreen-viewer" class="fullscreen-viewer">
-        <div class="fullscreen-close" onclick="closeFullscreen()">×</div>
-        <div id="fullscreen-content" class="fullscreen-content"></div>
-    </div>
-
-    <!-- Dice Roller Widget -->
-    <div id="dice-roller" class="dice-roller">
-        <div class="dice-header">
-            <h3>🎲 Dice Roller</h3>
-            <button class="close-btn" onclick="toggleDiceRoller()" style="font-size: 1.5em; width: 35px; height: 35px; background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.3);">−</button>
+  <dialog id="dlg-session">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Session</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div><label>Session #</label><input class="input" id="s-num" type="number" min="1" /></div>
+          <div><label>Date</label><input class="input" id="s-date" type="date" /></div>
         </div>
-        <div class="dice-content">
-            <div class="dice-buttons">
-                <button class="dice-btn" onclick="rollDice(4)">d4</button>
-                <button class="dice-btn" onclick="rollDice(6)">d6</button>
-                <button class="dice-btn" onclick="rollDice(8)">d8</button>
-                <button class="dice-btn" onclick="rollDice(10)">d10</button>
-                <button class="dice-btn" onclick="rollDice(12)">d12</button>
-                <button class="dice-btn" onclick="rollDice(20)">d20</button>
-                <button class="dice-btn" onclick="rollDice(100)">d100</button>
-            </div>
-            <div class="dice-result" id="dice-result">
-                <div style="font-size: 1.5em; opacity: 0.6;">🎲</div>
-                <small style="font-size: 0.9em; opacity: 0.7;">Click a die to roll!</small>
-            </div>
+        <label>Title</label>
+        <input class="input" id="s-title" />
+        <label>Notes</label>
+        <textarea class="input" id="s-notes"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="s-save" type="button" aria-label="Save session">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
         </div>
-    </div>
+      </div>
+    </form>
+  </dialog>
 
-    <!-- Quick Notes Widget -->
-    <div id="quick-notes" class="quick-notes">
-        <div class="notes-header" onclick="toggleQuickNotes()">
-            <h3>📝 Quick Notes</h3>
-            <span id="notes-toggle" style="font-size: 1.5em; font-weight: bold;">▼</span>
+  <dialog id="dlg-location">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add/Edit Location</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name *</label><input class="input" id="l-name" required />
+        <label>Type</label>
+        <select class="input" id="l-type"><option>City</option><option>Dungeon</option><option>Tavern</option><option>Wilderness</option><option>Building</option><option>Region</option><option>Other</option></select>
+        <label>Description</label><textarea class="input" id="l-desc"></textarea>
+        <label>Notable NPCs/Features</label><textarea class="input" id="l-notes"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="l-save" type="button" aria-label="Save location">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
         </div>
-        <div class="notes-content">
-            <textarea id="quick-notes-text" placeholder="Quick notes during session..." oninput="saveQuickNotes()"></textarea>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-combat">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Combatant</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name *</label><input class="input" id="cb-name" required />
+        <div class="two">
+          <div><label>Initiative</label><input class="input" id="cb-init" type="number" value="0" /></div>
+          <div><label>Armor</label><input class="input" id="cb-armor" type="number" value="0" /></div>
         </div>
-    </div>
+        <div class="two">
+          <div><label>HP</label><input class="input" id="cb-hp" type="number" value="10" /></div>
+          <div><label>Max HP</label><input class="input" id="cb-max" type="number" value="10" /></div>
+        </div>
+        <label>Conditions/Notes</label><input class="input" id="cb-notes" />
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="cb-save" type="button" aria-label="Add combatant">Add</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
 
-    <script>
-        // Data storage
-        let campaignData = {
-            info: {},
-            characters: [],
-            plots: [],
-            sessions: [],
-            locations: [],
-            items: [],
-            combatants: [],
-            timeline: [],
-            media: [],
-            quickNotes: '',
-            combatRound: 1,
-            currentTurn: 0
-        };
+  <dialog id="dlg-timeline">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Timeline Event</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Date/Session</label><input class="input" id="t-date" placeholder="Session 5, Day 23…" />
+        <label>Event *</label><input class="input" id="t-title" required />
+        <label>Description</label><textarea class="input" id="t-desc"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="t-save" type="button" aria-label="Save timeline event">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
 
-        let editingIndex = null;
-        let editingType = null;
+  <dialog id="dlg-media">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Add Media</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <label>Name</label><input class="input" id="m-name" />
+        <label>Category</label>
+        <select class="input" id="m-cat"><option>Map</option><option>Character Art</option><option>Scenery</option><option>Handout</option><option>Music/Sound</option><option>Other</option></select>
+        <label>Image File</label><input type="file" id="m-file" accept="image/*" class="input" />
+        <label>YouTube URL (optional)</label><input class="input" id="m-yt" placeholder="https://…" />
+        <label>Description</label><textarea class="input" id="m-desc"></textarea>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="m-save" type="button" aria-label="Save media">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
 
-        // Load data on startup
-        window.onload = function() {
-            loadData();
-            renderAll();
-            loadQuickNotes();
-        };
+  <dialog id="dlg-generators">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread"><h2>Edit Generators</h2><button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button></div>
+        <div class="two">
+          <div>
+            <label>Names (one per line)</label>
+            <textarea class="input" id="g-names"></textarea>
+          </div>
+          <div>
+            <label>Taverns (one per line)</label>
+            <textarea class="input" id="g-taverns"></textarea>
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <label>Encounters (one per line)</label>
+            <textarea class="input" id="g-encounters"></textarea>
+          </div>
+          <div>
+            <label>Quirks (one per line)</label>
+            <textarea class="input" id="g-quirks"></textarea>
+          </div>
+        </div>
+        <div>
+          <label>NPC Secrets/Quirks (one per line)</label>
+          <textarea class="input" id="g-npcs"></textarea>
+        </div>
+        <div class="row" style="gap:8px; margin-top:8px">
+          <button class="btn primary" id="g-save" type="button" aria-label="Save generators">Save</button>
+          <button class="btn" formmethod="dialog" value="cancel" aria-label="Cancel">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
 
-        // Tab switching
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.dataset.tab;
-                
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                
-                button.classList.add('active');
-                document.getElementById(tabName).classList.add('active');
-            });
+  <dialog id="dlg-rand">
+    <form method="dialog">
+      <div class="panel" style="border:none">
+        <div class="row spread">
+          <h2>Random Generators</h2>
+          <div class="row" style="gap:8px">
+            <button class="btn" type="button" id="g-edit" aria-label="Edit generator lists">Edit Lists</button>
+            <button class="btn" formmethod="dialog" value="cancel" aria-label="Close dialog">✕</button>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card">
+            <h3>Name</h3>
+            <button class="btn" type="button" id="g-name" aria-label="Generate random name">Generate</button>
+            <div class="chip" id="g-name-out">–</div>
+          </div>
+          <div class="card">
+            <h3>Tavern</h3>
+            <button class="btn" type="button" id="g-tavern" aria-label="Generate random tavern">Generate</button>
+            <div class="chip" id="g-tavern-out">–</div>
+          </div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div class="card">
+            <h3>Vaesen Encounter</h3>
+            <button class="btn" type="button" id="g-enc" aria-label="Generate random encounter">Generate</button>
+            <div class="chip" id="g-enc-out">–</div>
+          </div>
+          <div class="card">
+            <h3>Location Quirk</h3>
+            <button class="btn" type="button" id="g-quirk" aria-label="Generate random quirk">Generate</button>
+            <div class="chip" id="g-quirk-out">–</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>NPC Secret/Quirk</h3>
+          <button class="btn" type="button" id="g-npc" aria-label="Generate random NPC secret">Generate</button>
+          <div class="chip" id="g-npc-out">–</div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="hidden-file" class="hidden" />
+
+  <script>
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    const state = JSON.parse(localStorage.getItem('cm-data') || '{}');
+    state.campaign = state.campaign || { name: '', system: '', setting: '', overview: '', quickNotes: '' };
+    state.characters = state.characters || [];
+    state.plots = state.plots || [];
+    state.sessions = state.sessions || [];
+    state.locations = state.locations || [];
+    state.combat = state.combat || { round: 1, list: [], current: 0, manualOrder: false };
+    state.timeline = state.timeline || [];
+    state.media = state.media || [];
+    state.generators = state.generators || {
+      names: ['Astrid', 'Olof', 'Lovisa', 'Isak', 'Agnes', 'Sigrid', 'Henrik', 'Edda', 'Tova', 'Erik', 'Saga', 'Ivar'],
+      taverns: ['The Frosted Antler', 'Brass Lantern', 'Hushed Willow', 'The Old Millroom', 'Ivory Kettle'],
+      encounters: ['A grieving myling seeks recognition', 'Forest huldra trades secrets for a name', 'A church bell rings with no wind (rå)', 'Troll tracks circle the manor'],
+      quirks: ['Smells faintly of cinnamon', 'Floorboards creak rhythmically', 'Windows fog from the outside', 'A pendulum clock never ticks'],
+      npcs: ['Keeps a locket with a stranger’s portrait', 'Cannot cross running water', 'Laughs before bad news', 'Writes letters to a missing sibling']
+    };
+
+    const save = () => localStorage.setItem('cm-data', JSON.stringify(state));
+
+    // Focus trapping for accessibility
+    function trapFocus(dialog) {
+      const focusable = dialog.querySelectorAll('button, input, textarea, select');
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      dialog.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+    }
+    $$('dialog').forEach(d => d.addEventListener('open', () => trapFocus(d)));
+
+    // Highlight search matches
+    function highlight(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    // Tabs
+    $$('#tabs .tab').forEach(t => t.addEventListener('click', () => {
+      $$('#tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      $$('.page').forEach(p => p.classList.remove('active'));
+      const page = $(`#${t.dataset.page}`);
+      if (page) page.classList.add('active');
+      $('#global-search').value = ''; // Clear search on tab switch
+      performSearch();
+    }));
+
+    // Campaign
+    function renderCampaign() {
+      $('#campaign-name').value = state.campaign.name;
+      $('#game-system').value = state.campaign.system;
+      $('#campaign-setting').value = state.campaign.setting;
+      $('#campaign-overview').value = state.campaign.overview;
+      $('#quick-notes').value = state.campaign.quickNotes || '';
+    }
+    $('#save-campaign').addEventListener('click', () => {
+      state.campaign.name = $('#campaign-name').value.trim();
+      state.campaign.system = $('#game-system').value.trim();
+      state.campaign.setting = $('#campaign-setting').value.trim();
+      state.campaign.overview = $('#campaign-overview').value.trim();
+      save();
+    });
+    $('#save-quick').addEventListener('click', () => {
+      state.campaign.quickNotes = $('#quick-notes').value;
+      save();
+    });
+
+    // Characters
+    function charCard(c, i) {
+      const q = $('#filter-characters').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(c.name, q)}</strong><span class="tag">${highlight(c.type || '', q)}</span></div>
+        <div class="muted">${highlight(c.archetype || '', q)}</div>
+        ${c.motivation ? `<div class="chip">Motivation: ${highlight(c.motivation, q)}</div>` : ''}
+        ${c.secret ? `<div class="chip">Secret: ${highlight(c.secret, q)}</div>` : ''}
+        ${c.relationships ? `<div class="chip">Rel: ${highlight(c.relationships, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit character ${c.name}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete character ${c.name}">Delete</button>
+        </div>
+      `;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openChar(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${c.name}?`)) {
+          state.characters.splice(i, 1);
+          save();
+          renderCharacters();
+        }
+      });
+      return el;
+    }
+
+    function renderCharacters() {
+      const q = $('#filter-characters').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#characters-list');
+      host.innerHTML = '';
+      const filtered = state.characters.filter(c => !q || (c.name + ' ' + (c.notes || '') + ' ' + (c.archetype || '') + ' ' + (c.motivation || '') + ' ' + (c.secret || '') + ' ' + (c.relationships || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No characters found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((c, i) => host.appendChild(charCard(c, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((c, i) => host.appendChild(charCard(c, i + 20)));
+          more.remove();
         });
-
-        // Load/Save data
-        function loadData() {
-            const saved = localStorage.getItem('gmCampaignDataPro');
-            if (saved) {
-                campaignData = JSON.parse(saved);
-                loadCampaignInfo();
-            }
-        }
-
-        function saveData() {
-            try {
-                localStorage.setItem('gmCampaignDataPro', JSON.stringify(campaignData));
-            } catch (e) {
-                if (e.name === 'QuotaExceededError' || e.code === 22) {
-                    alert('❌ Storage limit exceeded! Your media files are too large.\n\n' +
-                          'Solutions:\n' +
-                          '1. Delete some old media files\n' +
-                          '2. Use smaller image files (compress them first)\n' +
-                          '3. Use YouTube links for videos instead of uploading\n' +
-                          '4. Export your campaign data and clear old sessions\n\n' +
-                          'Tip: Keep uploaded files under 5-8MB each for best results.');
-                } else {
-                    alert('❌ Error saving data: ' + e.message);
-                }
-                console.error('Save error:', e);
-                return false;
-            }
-            return true;
-        }
-
-        // Settings
-        function openSettings() {
-            document.getElementById('settings-modal').classList.add('active');
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-modal').classList.remove('active');
-        }
-
-        function deleteAllData() {
-            if (confirm('⚠️ Are you ABSOLUTELY SURE you want to delete ALL campaign data? This cannot be undone!')) {
-                if (confirm('🚨 FINAL WARNING: This will permanently delete everything. Have you exported your data as a backup?')) {
-                    localStorage.removeItem('gmCampaignDataPro');
-                    campaignData = {
-                        info: {},
-                        characters: [],
-                        plots: [],
-                        sessions: [],
-                        locations: [],
-                        items: [],
-                        combatants: [],
-                        timeline: [],
-                        media: [],
-                        quickNotes: '',
-                        combatRound: 1,
-                        currentTurn: 0
-                    };
-                    renderAll();
-                    loadCampaignInfo();
-                    loadQuickNotes();
-                    closeSettings();
-                    alert('✅ All campaign data has been deleted.');
-                }
-            }
-        }
-
-        // Export/Import
-        function exportData() {
-            const dataStr = JSON.stringify(campaignData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `campaign-backup-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            alert('Campaign data exported successfully!');
-        }
-
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    campaignData = JSON.parse(e.target.result);
-                    saveData();
-                    renderAll();
-                    loadCampaignInfo();
-                    loadQuickNotes();
-                    alert('Campaign data imported successfully!');
-                } catch (err) {
-                    alert('Error importing data: ' + err.message);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Search
-        function performSearch() {
-            const query = document.getElementById('global-search').value.toLowerCase();
-            if (!query) {
-                renderAll();
-                return;
-            }
-
-            // Search characters
-            const filteredChars = campaignData.characters.filter(c => 
-                c.name.toLowerCase().includes(query) || 
-                (c.notes && c.notes.toLowerCase().includes(query)) ||
-                (c.stats && c.stats.toLowerCase().includes(query))
-            );
-
-            // Search plots
-            const filteredPlots = campaignData.plots.filter(p =>
-                p.title.toLowerCase().includes(query) ||
-                (p.description && p.description.toLowerCase().includes(query))
-            );
-
-            // Search locations
-            const filteredLocations = campaignData.locations.filter(l =>
-                l.name.toLowerCase().includes(query) ||
-                (l.description && l.description.toLowerCase().includes(query))
-            );
-
-            // Search items
-            const filteredItems = campaignData.items.filter(i =>
-                i.name.toLowerCase().includes(query) ||
-                (i.description && i.description.toLowerCase().includes(query))
-            );
-
-            // Render filtered results
-            renderCharacters(filteredChars);
-            renderPlots(filteredPlots);
-            renderLocations(filteredLocations);
-            renderItems(filteredItems);
-        }
-
-        function clearSearch() {
-            document.getElementById('global-search').value = '';
-            renderAll();
-        }
-
-        // Campaign Info
-        function loadCampaignInfo() {
-            document.getElementById('campaign-name').value = campaignData.info.name || '';
-            document.getElementById('game-system').value = campaignData.info.system || '';
-            document.getElementById('campaign-setting').value = campaignData.info.setting || '';
-            document.getElementById('campaign-overview').value = campaignData.info.overview || '';
-        }
-
-        function saveCampaignInfo() {
-            campaignData.info = {
-                name: document.getElementById('campaign-name').value,
-                system: document.getElementById('game-system').value,
-                setting: document.getElementById('campaign-setting').value,
-                overview: document.getElementById('campaign-overview').value
-            };
-            saveData();
-            alert('Campaign information saved!');
-        }
-
-        // Characters
-        function openCharacterModal(index = null) {
-            editingIndex = index;
-            editingType = 'character';
-            const modal = document.getElementById('character-modal');
-            
-            if (index !== null) {
-                const char = campaignData.characters[index];
-                document.getElementById('char-name').value = char.name;
-                document.getElementById('char-type').value = char.type;
-                document.getElementById('char-stats').value = char.stats;
-                document.getElementById('char-notes').value = char.notes;
-                document.getElementById('char-relationships').value = char.relationships || '';
-                
-                if (char.image) {
-                    document.getElementById('char-image-preview').src = char.image;
-                    document.getElementById('char-image-preview').style.display = 'block';
-                }
-            } else {
-                document.getElementById('char-name').value = '';
-                document.getElementById('char-type').value = 'PC';
-                document.getElementById('char-stats').value = '';
-                document.getElementById('char-notes').value = '';
-                document.getElementById('char-relationships').value = '';
-                document.getElementById('char-image').value = '';
-                document.getElementById('char-image-preview').src = '';
-                document.getElementById('char-image-preview').style.display = 'none';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeCharacterModal() {
-            document.getElementById('character-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveCharacter() {
-            const name = document.getElementById('char-name').value;
-            if (!name) {
-                alert('Please enter a character name');
-                return;
-            }
-
-            const character = {
-                name: name,
-                type: document.getElementById('char-type').value,
-                stats: document.getElementById('char-stats').value,
-                notes: document.getElementById('char-notes').value,
-                relationships: document.getElementById('char-relationships').value,
-                image: document.getElementById('char-image-preview').src || null
-            };
-
-            if (editingIndex !== null) {
-                campaignData.characters[editingIndex] = character;
-            } else {
-                campaignData.characters.push(character);
-            }
-
-            saveData();
-            renderCharacters();
-            updateCombatantDropdown();
-            closeCharacterModal();
-        }
-
-        function deleteCharacter(index) {
-            if (confirm('Are you sure you want to delete this character?')) {
-                campaignData.characters.splice(index, 1);
-                saveData();
-                renderCharacters();
-                updateCombatantDropdown();
-            }
-        }
-
-        function renderCharacters(chars = null) {
-            const container = document.getElementById('characters-list');
-            const list = chars || campaignData.characters;
-            
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">👥</div>
-                        <h3>No Characters Yet</h3>
-                        <p>Add your first character to get started!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = list.map((char, index) => {
-                const actualIndex = campaignData.characters.indexOf(char);
-                let statsHtml = '';
-                try {
-                    const statsObj = JSON.parse(char.stats);
-                    statsHtml = '<div class="stats-grid">' + 
-                        Object.entries(statsObj).map(([key, value]) => 
-                            `<div class="stat-item"><span class="stat-label">${key}:</span><span class="stat-value">${value}</span></div>`
-                        ).join('') + 
-                        '</div>';
-                } catch (e) {
-                    if (char.stats) {
-                        statsHtml = `<div class="notes"><strong>Stats:</strong><br>${char.stats}</div>`;
-                    }
-                }
-
-                return `
-                    <div class="character-card">
-                        <div class="card-header">
-                            <div style="display: flex; align-items: flex-start;">
-                                ${char.image ? `<img src="${char.image}" class="card-image" alt="${char.name}">` : ''}
-                                <div class="card-info">
-                                    <div class="card-name">${char.name}</div>
-                                    <div class="card-type">${char.type}</div>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="openCharacterModal(${actualIndex})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">✏️ Edit</button>
-                                <button onclick="deleteCharacter(${actualIndex})" class="delete-btn">🗑️ Delete</button>
-                            </div>
-                        </div>
-                        ${statsHtml}
-                        ${char.notes ? `<div class="notes">${char.notes.replace(/\n/g, '<br>')}</div>` : ''}
-                        ${char.relationships ? `<div class="relationships"><strong>Relationships:</strong> ${char.relationships}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Plots
-        function openPlotModal(index = null) {
-            editingIndex = index;
-            editingType = 'plot';
-            const modal = document.getElementById('plot-modal');
-            
-            if (index !== null) {
-                const plot = campaignData.plots[index];
-                document.getElementById('plot-title').value = plot.title;
-                document.getElementById('plot-type').value = plot.type;
-                document.getElementById('plot-status').value = plot.status;
-                document.getElementById('plot-description').value = plot.description;
-                document.getElementById('plot-characters').value = plot.characters || '';
-            } else {
-                document.getElementById('plot-title').value = '';
-                document.getElementById('plot-type').value = 'Main';
-                document.getElementById('plot-status').value = 'Active';
-                document.getElementById('plot-description').value = '';
-                document.getElementById('plot-characters').value = '';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closePlotModal() {
-            document.getElementById('plot-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function savePlot() {
-            const title = document.getElementById('plot-title').value;
-            if (!title) {
-                alert('Please enter a plot title');
-                return;
-            }
-
-            const plot = {
-                title: title,
-                type: document.getElementById('plot-type').value,
-                status: document.getElementById('plot-status').value,
-                description: document.getElementById('plot-description').value,
-                characters: document.getElementById('plot-characters').value
-            };
-
-            if (editingIndex !== null) {
-                campaignData.plots[editingIndex] = plot;
-            } else {
-                campaignData.plots.push(plot);
-            }
-
-            saveData();
-            renderPlots();
-            closePlotModal();
-        }
-
-        function deletePlot(index) {
-            if (confirm('Are you sure you want to delete this plot?')) {
-                campaignData.plots.splice(index, 1);
-                saveData();
-                renderPlots();
-            }
-        }
-
-        function renderPlots(plots = null) {
-            const container = document.getElementById('plots-list');
-            const list = plots || campaignData.plots;
-            
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📖</div>
-                        <h3>No Plots Yet</h3>
-                        <p>Add your first plot or story arc!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = list.map((plot, index) => {
-                const actualIndex = campaignData.plots.indexOf(plot);
-                const statusColors = {
-                    'Active': '#10b981',
-                    'Pending': '#f59e0b',
-                    'Completed': '#6366f1',
-                    'Abandoned': '#64748b'
-                };
-
-                return `
-                    <div class="plot-card">
-                        <div class="card-header">
-                            <div>
-                                <div class="card-name">${plot.title}</div>
-                                <div class="card-type">
-                                    <span style="background: ${statusColors[plot.status]}; padding: 5px 14px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
-                                        ${plot.status}
-                                    </span>
-                                    <span style="margin-left: 12px;">${plot.type}</span>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="openPlotModal(${actualIndex})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">✏️ Edit</button>
-                                <button onclick="deletePlot(${actualIndex})" class="delete-btn">🗑️ Delete</button>
-                            </div>
-                        </div>
-                        ${plot.description ? `<div class="notes">${plot.description.replace(/\n/g, '<br>')}</div>` : ''}
-                        ${plot.characters ? `<div class="relationships"><strong>Related Characters:</strong> ${plot.characters}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Sessions
-        function openSessionModal(index = null) {
-            editingIndex = index;
-            editingType = 'session';
-            const modal = document.getElementById('session-modal');
-            
-            if (index !== null) {
-                const session = campaignData.sessions[index];
-                document.getElementById('session-number').value = session.number;
-                document.getElementById('session-date').value = session.date;
-                document.getElementById('session-title').value = session.title;
-                document.getElementById('session-notes').value = session.notes;
-            } else {
-                document.getElementById('session-number').value = campaignData.sessions.length + 1;
-                document.getElementById('session-date').value = new Date().toISOString().split('T')[0];
-                document.getElementById('session-title').value = '';
-                document.getElementById('session-notes').value = '';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeSessionModal() {
-            document.getElementById('session-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveSession() {
-            const session = {
-                number: document.getElementById('session-number').value || campaignData.sessions.length + 1,
-                date: document.getElementById('session-date').value,
-                title: document.getElementById('session-title').value,
-                notes: document.getElementById('session-notes').value
-            };
-
-            if (editingIndex !== null) {
-                campaignData.sessions[editingIndex] = session;
-            } else {
-                campaignData.sessions.push(session);
-            }
-
-            saveData();
-            renderSessions();
-            closeSessionModal();
-        }
-
-        function deleteSession(index) {
-            if (confirm('Are you sure you want to delete this session?')) {
-                campaignData.sessions.splice(index, 1);
-                saveData();
-                renderSessions();
-            }
-        }
-
-        function renderSessions() {
-            const container = document.getElementById('sessions-list');
-            
-            if (campaignData.sessions.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎲</div>
-                        <h3>No Session Notes Yet</h3>
-                        <p>Record your first game session!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const sortedSessions = [...campaignData.sessions].sort((a, b) => b.number - a.number);
-
-            container.innerHTML = sortedSessions.map((session) => {
-                const index = campaignData.sessions.indexOf(session);
-                return `
-                    <div class="session-card">
-                        <div class="card-header">
-                            <div>
-                                <div class="card-name">Session ${session.number}${session.title ? ': ' + session.title : ''}</div>
-                                <div class="card-type">${session.date ? new Date(session.date).toLocaleDateString() : ''}</div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="openSessionModal(${index})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">✏️ Edit</button>
-                                <button onclick="deleteSession(${index})" class="delete-btn">🗑️ Delete</button>
-                            </div>
-                        </div>
-                        ${session.notes ? `<div class="notes">${session.notes.replace(/\n/g, '<br>')}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Locations
-        function openLocationModal(index = null) {
-            editingIndex = index;
-            editingType = 'location';
-            const modal = document.getElementById('location-modal');
-            
-            if (index !== null) {
-                const loc = campaignData.locations[index];
-                document.getElementById('location-name').value = loc.name;
-                document.getElementById('location-type').value = loc.type;
-                document.getElementById('location-description').value = loc.description;
-                document.getElementById('location-notes').value = loc.notes;
-                
-                if (loc.image) {
-                    document.getElementById('location-image-preview').src = loc.image;
-                    document.getElementById('location-image-preview').style.display = 'block';
-                }
-            } else {
-                document.getElementById('location-name').value = '';
-                document.getElementById('location-type').value = 'City';
-                document.getElementById('location-description').value = '';
-                document.getElementById('location-notes').value = '';
-                document.getElementById('location-image').value = '';
-                document.getElementById('location-image-preview').src = '';
-                document.getElementById('location-image-preview').style.display = 'none';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeLocationModal() {
-            document.getElementById('location-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveLocation() {
-            const name = document.getElementById('location-name').value;
-            if (!name) {
-                alert('Please enter a location name');
-                return;
-            }
-
-            const location = {
-                name: name,
-                type: document.getElementById('location-type').value,
-                description: document.getElementById('location-description').value,
-                notes: document.getElementById('location-notes').value,
-                image: document.getElementById('location-image-preview').src || null
-            };
-
-            if (editingIndex !== null) {
-                campaignData.locations[editingIndex] = location;
-            } else {
-                campaignData.locations.push(location);
-            }
-
-            saveData();
-            renderLocations();
-            closeLocationModal();
-        }
-
-        function deleteLocation(index) {
-            if (confirm('Are you sure you want to delete this location?')) {
-                campaignData.locations.splice(index, 1);
-                saveData();
-                renderLocations();
-            }
-        }
-
-        function renderLocations(locs = null) {
-            const container = document.getElementById('locations-list');
-            const list = locs || campaignData.locations;
-            
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🗺️</div>
-                        <h3>No Locations Yet</h3>
-                        <p>Add your first location!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = list.map((loc, index) => {
-                const actualIndex = campaignData.locations.indexOf(loc);
-                return `
-                    <div class="location-card">
-                        <div class="card-header">
-                            <div style="display: flex; align-items: flex-start;">
-                                ${loc.image ? `<img src="${loc.image}" class="card-image" alt="${loc.name}">` : ''}
-                                <div class="card-info">
-                                    <div class="card-name">${loc.name}</div>
-                                    <div class="card-type">${loc.type}</div>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="openLocationModal(${actualIndex})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">✏️ Edit</button>
-                                <button onclick="deleteLocation(${actualIndex})" class="delete-btn">🗑️ Delete</button>
-                            </div>
-                        </div>
-                        ${loc.description ? `<div class="notes">${loc.description.replace(/\n/g, '<br>')}</div>` : ''}
-                        ${loc.notes ? `<div class="notes" style="border-top: none; padding-top: 10px;"><strong>Notable Features:</strong><br>${loc.notes.replace(/\n/g, '<br>')}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Items
-        function openItemModal(index = null) {
-            editingIndex = index;
-            editingType = 'item';
-            const modal = document.getElementById('item-modal');
-            
-            if (index !== null) {
-                const item = campaignData.items[index];
-                document.getElementById('item-name').value = item.name;
-                document.getElementById('item-type').value = item.type;
-                document.getElementById('item-owner').value = item.owner;
-                document.getElementById('item-description').value = item.description;
-                
-                if (item.image) {
-                    document.getElementById('item-image-preview').src = item.image;
-                    document.getElementById('item-image-preview').style.display = 'block';
-                }
-            } else {
-                document.getElementById('item-name').value = '';
-                document.getElementById('item-type').value = 'Weapon';
-                document.getElementById('item-owner').value = '';
-                document.getElementById('item-description').value = '';
-                document.getElementById('item-image').value = '';
-                document.getElementById('item-image-preview').src = '';
-                document.getElementById('item-image-preview').style.display = 'none';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeItemModal() {
-            document.getElementById('item-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveItem() {
-            const name = document.getElementById('item-name').value;
-            if (!name) {
-                alert('Please enter an item name');
-                return;
-            }
-
-            const item = {
-                name: name,
-                type: document.getElementById('item-type').value,
-                owner: document.getElementById('item-owner').value,
-                description: document.getElementById('item-description').value,
-                image: document.getElementById('item-image-preview').src || null
-            };
-
-            if (editingIndex !== null) {
-                campaignData.items[editingIndex] = item;
-            } else {
-                campaignData.items.push(item);
-            }
-
-            saveData();
-            renderItems();
-            closeItemModal();
-        }
-
-        function deleteItem(index) {
-            if (confirm('Are you sure you want to delete this item?')) {
-                campaignData.items.splice(index, 1);
-                saveData();
-                renderItems();
-            }
-        }
-
-        function renderItems(items = null) {
-            const container = document.getElementById('items-list');
-            const list = items || campaignData.items;
-            
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚔️</div>
-                        <h3>No Items Yet</h3>
-                        <p>Add your first item or piece of loot!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = list.map((item, index) => {
-                const actualIndex = campaignData.items.indexOf(item);
-                return `
-                    <div class="item-card">
-                        <div class="card-header">
-                            <div style="display: flex; align-items: flex-start;">
-                                ${item.image ? `<img src="${item.image}" class="card-image" alt="${item.name}">` : ''}
-                                <div class="card-info">
-                                    <div class="card-name">${item.name}</div>
-                                    <div class="card-type">${item.type}${item.owner ? ' • Owned by: ' + item.owner : ''}</div>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="openItemModal(${actualIndex})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">✏️ Edit</button>
-                                <button onclick="deleteItem(${actualIndex})" class="delete-btn">🗑️ Delete</button>
-                            </div>
-                        </div>
-                        ${item.description ? `<div class="notes">${item.description.replace(/\n/g, '<br>')}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Combat Tracker
-        function updateCombatantDropdown() {
-            const select = document.getElementById('combatant-character');
-            select.innerHTML = '<option value="">-- Manual Entry --</option>' + 
-                campaignData.characters.map((char, index) => 
-                    `<option value="${index}">${char.name} (${char.type})</option>`
-                ).join('');
-        }
-
-        function loadCharacterStats() {
-            const select = document.getElementById('combatant-character');
-            const index = select.value;
-            
-            if (index === '') {
-                document.getElementById('combatant-name').value = '';
-                document.getElementById('combatant-initiative').value = '0';
-                document.getElementById('combatant-hp').value = '10';
-                document.getElementById('combatant-max-hp').value = '10';
-                document.getElementById('combatant-ac').value = '10';
-                return;
-            }
-
-            const char = campaignData.characters[index];
-            document.getElementById('combatant-name').value = char.name;
-            
-            // Try to parse stats
-            try {
-                const stats = JSON.parse(char.stats);
-                document.getElementById('combatant-hp').value = stats.HP || stats.hp || 10;
-                document.getElementById('combatant-max-hp').value = stats.HP || stats.hp || 10;
-                document.getElementById('combatant-ac').value = stats.AC || stats.ac || 10;
-                document.getElementById('combatant-initiative').value = stats.Initiative || stats.initiative || stats.DEX || 0;
-            } catch (e) {
-                // If not JSON, leave defaults
-            }
-        }
-
-        function openCombatantModal() {
-            updateCombatantDropdown();
-            document.getElementById('combatant-modal').classList.add('active');
-        }
-
-        function closeCombatantModal() {
-            document.getElementById('combatant-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveCombatant() {
-            const name = document.getElementById('combatant-name').value;
-            if (!name) {
-                alert('Please enter a name');
-                return;
-            }
-
-            const combatant = {
-                name: name,
-                initiative: parseInt(document.getElementById('combatant-initiative').value) || 0,
-                hp: parseInt(document.getElementById('combatant-hp').value) || 10,
-                maxHp: parseInt(document.getElementById('combatant-max-hp').value) || 10,
-                ac: parseInt(document.getElementById('combatant-ac').value) || 10,
-                conditions: document.getElementById('combatant-conditions').value
-            };
-
-            campaignData.combatants.push(combatant);
-            campaignData.combatants.sort((a, b) => b.initiative - a.initiative);
-            
-            saveData();
-            renderCombat();
-            closeCombatantModal();
-        }
-
-        function updateCombatantHP(index, change) {
-            const combatant = campaignData.combatants[index];
-            combatant.hp = Math.max(0, Math.min(combatant.maxHp, combatant.hp + change));
-            saveData();
-            renderCombat();
-        }
-
-        function removeCombatant(index) {
-            if (confirm('Remove this combatant from combat?')) {
-                campaignData.combatants.splice(index, 1);
-                if (campaignData.currentTurn >= campaignData.combatants.length) {
-                    campaignData.currentTurn = 0;
-                }
-                saveData();
-                renderCombat();
-            }
-        }
-
-        function nextTurn() {
-            if (campaignData.combatants.length === 0) return;
-            
-            campaignData.currentTurn++;
-            if (campaignData.currentTurn >= campaignData.combatants.length) {
-                campaignData.currentTurn = 0;
-                campaignData.combatRound++;
-            }
-            
-            document.getElementById('combat-round').textContent = campaignData.combatRound;
-            saveData();
-            renderCombat();
-        }
-
-        function clearCombat() {
-            if (confirm('Clear all combatants and reset combat?')) {
-                campaignData.combatants = [];
-                campaignData.combatRound = 1;
-                campaignData.currentTurn = 0;
-                document.getElementById('combat-round').textContent = '1';
-                saveData();
-                renderCombat();
-            }
-        }
-
-        function renderCombat() {
-            const container = document.getElementById('combat-list');
-            document.getElementById('combat-round').textContent = campaignData.combatRound;
-            
-            if (campaignData.combatants.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚔️</div>
-                        <h3>No Combat Active</h3>
-                        <p>Add combatants to start tracking initiative!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = '<div class="combatant-list">' + 
-                campaignData.combatants.map((combatant, index) => {
-                    const hpPercent = (combatant.hp / combatant.maxHp) * 100;
-                    const isActive = index === campaignData.currentTurn;
-                    
-                    return `
-                        <div class="combatant-item ${isActive ? 'active' : ''}">
-                            <div class="combatant-info">
-                                <div class="combatant-name">${combatant.name} ${isActive ? '👈 TURN' : ''}</div>
-                                <div class="combatant-stats">
-                                    <span><strong>Initiative:</strong> ${combatant.initiative}</span>
-                                    <span><strong>HP:</strong> ${combatant.hp}/${combatant.maxHp}</span>
-                                    <span><strong>AC:</strong> ${combatant.ac}</span>
-                                    ${combatant.conditions ? `<span>• ${combatant.conditions}</span>` : ''}
-                                </div>
-                                <div class="hp-bar">
-                                    <div class="hp-fill" style="width: ${hpPercent}%"></div>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button onclick="updateCombatantHP(${index}, -5)" class="delete-btn">-5 HP</button>
-                                <button onclick="updateCombatantHP(${index}, -1)" class="delete-btn">-1 HP</button>
-                                <button onclick="updateCombatantHP(${index}, 1)" style="background: linear-gradient(135deg, #10b981, #34d399);">+1 HP</button>
-                                <button onclick="updateCombatantHP(${index}, 5)" style="background: linear-gradient(135deg, #10b981, #34d399);">+5 HP</button>
-                                <button onclick="removeCombatant(${index})" class="delete-btn">🗑️</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('') + '</div>';
-        }
-
-        // Timeline
-        function openTimelineModal(index = null) {
-            editingIndex = index;
-            editingType = 'timeline';
-            const modal = document.getElementById('timeline-modal');
-            
-            if (index !== null) {
-                const event = campaignData.timeline[index];
-                document.getElementById('timeline-date').value = event.date;
-                document.getElementById('timeline-event').value = event.event;
-                document.getElementById('timeline-description').value = event.description;
-            } else {
-                document.getElementById('timeline-date').value = '';
-                document.getElementById('timeline-event').value = '';
-                document.getElementById('timeline-description').value = '';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeTimelineModal() {
-            document.getElementById('timeline-modal').classList.remove('active');
-            editingIndex = null;
-        }
-
-        function saveTimelineEvent() {
-            const event = document.getElementById('timeline-event').value;
-            if (!event) {
-                alert('Please enter an event title');
-                return;
-            }
-
-            const timelineEvent = {
-                date: document.getElementById('timeline-date').value,
-                event: event,
-                description: document.getElementById('timeline-description').value
-            };
-
-            if (editingIndex !== null) {
-                campaignData.timeline[editingIndex] = timelineEvent;
-            } else {
-                campaignData.timeline.push(timelineEvent);
-            }
-
-            saveData();
-            renderTimeline();
-            closeTimelineModal();
-        }
-
-        function deleteTimelineEvent(index) {
-            if (confirm('Delete this timeline event?')) {
-                campaignData.timeline.splice(index, 1);
-                saveData();
-                renderTimeline();
-            }
-        }
-
-        function renderTimeline() {
-            const container = document.getElementById('timeline-list');
-            
-            if (campaignData.timeline.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📅</div>
-                        <h3>No Timeline Events Yet</h3>
-                        <p>Add your first major campaign event!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = campaignData.timeline.map((event, index) => `
-                <div class="timeline-item">
-                    <div class="timeline-date">${event.date || 'Unknown Date'}</div>
-                    <div class="timeline-event">${event.event}</div>
-                    ${event.description ? `<div style="color: #cbd5e1; margin-top: 8px; line-height: 1.6;">${event.description}</div>` : ''}
-                    <div class="btn-group" style="margin-top: 15px;">
-                        <button onclick="openTimelineModal(${index})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 8px 16px; font-size: 0.9em;">✏️ Edit</button>
-                        <button onclick="deleteTimelineEvent(${index})" class="delete-btn" style="padding: 8px 16px; font-size: 0.9em;">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Media Gallery
-        function openMediaModal(index = null) {
-            editingIndex = index;
-            editingType = 'media';
-            const modal = document.getElementById('media-modal');
-            
-            // Clear temp data
-            tempMediaData = null;
-            tempMediaType = null;
-            
-            if (index !== null) {
-                const media = campaignData.media[index];
-                document.getElementById('media-name').value = media.name;
-                document.getElementById('media-category').value = media.category;
-                document.getElementById('media-description').value = media.description;
-                document.getElementById('media-youtube').value = media.youtube || '';
-                
-                if (media.data) {
-                    // Store existing media data
-                    tempMediaData = media.data;
-                    tempMediaType = media.type;
-                    
-                    document.getElementById('media-preview').innerHTML = 
-                        media.type === 'video' ? 
-                        `<video src="${media.data}" style="max-width: 220px; max-height: 220px; border-radius: 12px;" controls></video>` :
-                        `<img src="${media.data}" style="max-width: 220px; max-height: 220px; border-radius: 12px;">`;
-                }
-            } else {
-                document.getElementById('media-name').value = '';
-                document.getElementById('media-category').value = 'Map';
-                document.getElementById('media-description').value = '';
-                document.getElementById('media-youtube').value = '';
-                document.getElementById('media-file').value = '';
-                document.getElementById('media-preview').innerHTML = '';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeMediaModal() {
-            document.getElementById('media-modal').classList.remove('active');
-            tempMediaData = null;
-            tempMediaType = null;
-            editingIndex = null;
-        }
-
-        let tempMediaData = null;
-        let tempMediaType = null;
-
-        function previewMedia(input) {
-            const preview = document.getElementById('media-preview');
-            
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const fileSizeMB = file.size / (1024 * 1024);
-                
-                // Warn about large files
-                if (fileSizeMB > 8) {
-                    alert(`⚠️ Warning: This file is ${fileSizeMB.toFixed(1)}MB\n\n` +
-                          `Large files may fail to save due to browser storage limits.\n\n` +
-                          `Recommendations:\n` +
-                          `• Compress images before uploading (aim for under 5MB)\n` +
-                          `• Use YouTube links for videos instead of uploading\n` +
-                          `• Use lower resolution images for maps\n\n` +
-                          `Continue at your own risk!`);
-                }
-                
-                if (fileSizeMB > 15) {
-                    alert(`❌ Error: File is too large (${fileSizeMB.toFixed(1)}MB)\n\n` +
-                          `Files over 15MB will likely fail to save.\n` +
-                          `Please compress this file or use a YouTube link for videos.`);
-                    input.value = '';
-                    return;
-                }
-                
-                const reader = new FileReader();
-                
-                // Show loading message
-                preview.innerHTML = '<div style="color: #60a5fa; padding: 20px;">📂 Loading file...</div>';
-                
-                reader.onload = function(e) {
-                    tempMediaData = e.target.result;
-                    tempMediaType = file.type.startsWith('video') ? 'video' : 'image';
-                    
-                    if (file.type.startsWith('image')) {
-                        preview.innerHTML = `<img src="${e.target.result}" class="image-preview">`;
-                    } else if (file.type.startsWith('video')) {
-                        preview.innerHTML = `<video src="${e.target.result}" class="image-preview" controls></video>`;
-                    }
-                    
-                    preview.innerHTML += '<div style="color: #10b981; margin-top: 10px; font-size: 0.9em;">✓ File loaded! Ready to save.</div>';
-                };
-                
-                reader.onerror = function() {
-                    preview.innerHTML = '<div style="color: #ef4444; padding: 20px;">❌ Error loading file. Try a smaller file or use a YouTube link instead.</div>';
-                    tempMediaData = null;
-                    input.value = '';
-                };
-                
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function saveMedia() {
-            const name = document.getElementById('media-name').value || 'Untitled Media';
-            const youtube = document.getElementById('media-youtube').value;
-            
-            if (!youtube && !tempMediaData) {
-                alert('Please upload a file or provide a YouTube URL');
-                return;
-            }
-
-            const media = {
-                name: name,
-                category: document.getElementById('media-category').value,
-                description: document.getElementById('media-description').value,
-                youtube: youtube
-            };
-
-            if (tempMediaData) {
-                media.type = tempMediaType;
-                media.data = tempMediaData;
-                
-                if (editingIndex !== null) {
-                    campaignData.media[editingIndex] = media;
-                } else {
-                    campaignData.media.push(media);
-                }
-                
-                const saved = saveData();
-                if (saved) {
-                    renderMedia();
-                    
-                    // Clear temp data
-                    tempMediaData = null;
-                    tempMediaType = null;
-                    
-                    closeMediaModal();
-                    
-                    // Show success message
-                    alert('✅ Media saved successfully! Click it to show fullscreen to your players.');
-                } else {
-                    // If save failed, remove the media that was just added
-                    if (editingIndex === null) {
-                        campaignData.media.pop();
-                    }
-                }
-            } else if (youtube) {
-                media.type = 'youtube';
-                
-                if (editingIndex !== null) {
-                    campaignData.media[editingIndex] = media;
-                } else {
-                    campaignData.media.push(media);
-                }
-                
-                const saved = saveData();
-                if (saved) {
-                    renderMedia();
-                    closeMediaModal();
-                    
-                    alert('✅ YouTube video saved! Click it to show fullscreen to your players.');
-                } else {
-                    // If save failed, remove the media that was just added
-                    if (editingIndex === null) {
-                        campaignData.media.pop();
-                    }
-                }
-            }
-        }
-
-        function deleteMedia(index) {
-            if (confirm('Delete this media?')) {
-                campaignData.media.splice(index, 1);
-                saveData();
-                renderMedia();
-            }
-        }
-
-        function showMediaFullscreen(index) {
-            const media = campaignData.media[index];
-            const viewer = document.getElementById('fullscreen-viewer');
-            const content = document.getElementById('fullscreen-content');
-            
-            if (media.youtube) {
-                const videoId = media.youtube.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
-                content.innerHTML = `<iframe width="1280" height="720" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="border-radius: 12px;"></iframe>`;
-            } else if (media.type === 'video') {
-                content.innerHTML = `<video src="${media.data}" controls autoplay style="max-width: 90vw; max-height: 90vh; border-radius: 12px;"></video>`;
-            } else {
-                content.innerHTML = `<img src="${media.data}" style="max-width: 90vw; max-height: 90vh; border-radius: 12px;">`;
-            }
-            
-            viewer.classList.add('active');
-        }
-
-        function closeFullscreen() {
-            document.getElementById('fullscreen-viewer').classList.remove('active');
-            document.getElementById('fullscreen-content').innerHTML = '';
-        }
-
-        function renderMedia() {
-            const container = document.getElementById('media-list');
-            
-            if (campaignData.media.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🖼️</div>
-                        <h3>No Media Yet</h3>
-                        <p>Add images, maps, or videos to share with players!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = campaignData.media.map((media, index) => {
-                let thumbnail = '';
-                if (media.youtube) {
-                    const videoId = media.youtube.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/)?.[1];
-                    thumbnail = `<img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg" class="media-thumbnail">`;
-                } else if (media.type === 'video') {
-                    thumbnail = `<video src="${media.data}" class="media-thumbnail"></video>`;
-                } else {
-                    thumbnail = `<img src="${media.data}" class="media-thumbnail">`;
-                }
-
-                return `
-                    <div class="media-item" onclick="showMediaFullscreen(${index})">
-                        ${thumbnail}
-                        <div class="media-info">
-                            <div class="media-name">${media.name}</div>
-                            <div class="media-category">${media.category}</div>
-                            <div class="btn-group" style="margin-top: 12px;" onclick="event.stopPropagation();">
-                                <button onclick="openMediaModal(${index})" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 8px 16px; font-size: 0.85em;">✏️</button>
-                                <button onclick="deleteMedia(${index})" class="delete-btn" style="padding: 8px 16px; font-size: 0.85em;">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Dice Roller
-        function toggleDiceRoller() {
-            const roller = document.getElementById('dice-roller');
-            roller.classList.toggle('minimized');
-            const btn = roller.querySelector('.close-btn');
-            btn.textContent = roller.classList.contains('minimized') ? '+' : '−';
-        }
-
-        function rollDice(sides) {
-            const result = Math.floor(Math.random() * sides) + 1;
-            document.getElementById('dice-result').innerHTML = `<div style="font-size: 2em; font-weight: 700;">🎲 ${result}</div><small style="font-size: 0.8em; opacity: 0.8; margin-top: 5px; display: block;">d${sides}</small>`;
-        }
-
-        // Quick Notes
-        function toggleQuickNotes() {
-            const notes = document.getElementById('quick-notes');
-            notes.classList.toggle('minimized');
-            document.getElementById('notes-toggle').textContent = 
-                notes.classList.contains('minimized') ? '▲' : '▼';
-        }
-
-        function saveQuickNotes() {
-            campaignData.quickNotes = document.getElementById('quick-notes-text').value;
-            saveData();
-        }
-
-        function loadQuickNotes() {
-            document.getElementById('quick-notes-text').value = campaignData.quickNotes || '';
-        }
-
-        // Random Generators
-        function openRandomGenerator() {
-            document.getElementById('random-modal').classList.add('active');
-        }
-
-        function closeRandomModal() {
-            document.getElementById('random-modal').classList.remove('active');
-        }
-
-        function generateRandom(type) {
-            if (type === 'name') {
-                const firstNames = ['Aldrin', 'Thora', 'Garrick', 'Elara', 'Bram', 'Lyssa', 'Torin', 'Sera', 'Magnus', 'Kira', 'Orin', 'Nessa', 'Darius', 'Vex', 'Finn', 'Mira', 'Rowan', 'Zara'];
-                const lastNames = ['Ironforge', 'Stormwind', 'Shadowbane', 'Brightwood', 'Darkwater', 'Flameheart', 'Frostborn', 'Swiftblade', 'Thornhill', 'Moonshadow', 'Dragonsbane', 'Starfall', 'Ashwood', 'Silvermane'];
-                
-                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-                
-                document.getElementById('random-name-result').textContent = `${firstName} ${lastName}`;
-            } else if (type === 'tavern') {
-                const adjectives = ['Prancing', 'Drunken', 'Golden', 'Silver', 'Rusty', 'Laughing', 'Dancing', 'Sleeping', 'Roaring', 'Howling', 'Tipsy', 'Merry'];
-                const nouns = ['Pony', 'Dragon', 'Mermaid', 'Griffin', 'Barrel', 'Sword', 'Crown', 'Moon', 'Lion', 'Bear', 'Stag', 'Phoenix'];
-                
-                const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-                const noun = nouns[Math.floor(Math.random() * nouns.length)];
-                
-                document.getElementById('random-tavern-result').textContent = `The ${adj} ${noun}`;
-            } else if (type === 'encounter') {
-                const encounters = [
-                    'A mysterious hooded figure watches from the shadows',
-                    'Bandits ambush the party on the road',
-                    'A merchant needs urgent escort through dangerous territory',
-                    'Strange magical runes glow on ancient stones',
-                    'A wounded creature seeks help from the party',
-                    'Local villagers report disappearances near old ruins',
-                    'A traveling bard shares rumors of treasure',
-                    'Cultists perform a dark ritual in the forest',
-                    'A magical storm suddenly appears overhead',
-                    'An old friend appears with desperate news',
-                    'The party discovers a hidden underground passage',
-                    'A powerful magical artifact is being auctioned',
-                    'Refugees flee from an approaching threat',
-                    'A noble offers a suspicious quest with great reward',
-                    'Strange tracks lead into unexplored territory',
-                    'A ghostly figure beckons from an abandoned building',
-                    'Merchants are being extorted by a local gang',
-                    'A dragon is spotted circling nearby mountains'
-                ];
-                
-                const encounter = encounters[Math.floor(Math.random() * encounters.length)];
-                document.getElementById('random-encounter-result').textContent = encounter;
-            }
-        }
-
-        // Image preview helper
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // Keyboard shortcuts
-        let keyBuffer = '';
-        let keyTimeout = null;
-
-        document.addEventListener('keydown', function(e) {
-            // Don't trigger shortcuts when typing in inputs or textareas
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            
-            // Handle Ctrl+ shortcuts for opening modals
-            if (e.ctrlKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'n':
-                        e.preventDefault();
-                        openCharModal();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        openPlotModal();
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        openSessionModal();
-                        break;
-                    case 'l':
-                        e.preventDefault();
-                        openLocationModal();
-                        break;
-                }
-                return;
-            }
-
-            // Handle dice shortcuts (d4, d6, d8, d10, d12, d20, d100)
-            if (e.key.toLowerCase() === 'd' || (keyBuffer.startsWith('d') && /^\d$/.test(e.key))) {
-                keyBuffer += e.key.toLowerCase();
-                
-                // Clear previous timeout
-                if (keyTimeout) clearTimeout(keyTimeout);
-                
-                // Check if we have a valid dice command
-                const diceMatch = keyBuffer.match(/^d(\d+)$/);
-                if (diceMatch) {
-                    const sides = parseInt(diceMatch[1]);
-                    // Support common dice types
-                    if ([4, 6, 8, 10, 12, 20, 100].includes(sides)) {
-                        e.preventDefault();
-                        rollDice(sides);
-                        keyBuffer = '';
-                        return;
-                    }
-                }
-                
-                // Reset buffer after 1 second of inactivity
-                keyTimeout = setTimeout(() => {
-                    keyBuffer = '';
-                }, 1000);
-            } else {
-                // Reset buffer if non-dice key pressed
-                keyBuffer = '';
-            }
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-characters').addEventListener('input', renderCharacters);
+
+    function openChar(i) {
+      const d = $('#dlg-char');
+      const c = typeof i === 'number' ? state.characters[i] : {};
+      const isVaesen = state.campaign.system.toLowerCase().includes('vaesen');
+      $('#c-name').value = c.name || '';
+      $('#c-arch').value = c.archetype || '';
+      $('#c-age').value = c.age || '';
+      $('#c-type').value = c.type || 'PC';
+      $('#c-motivation').value = c.motivation || '';
+      $('#c-secret').value = c.secret || '';
+      $('#c-trauma').value = c.trauma || '';
+      $('#c-mementos').value = c.mementos || '';
+      $('#c-relationships').value = c.relationships || '';
+      $('#c-res').value = c.resources || '';
+      $('#c-xp').value = c.xp || '';
+      $('#c-notes').value = c.notes || '';
+      $('#dlg-char h2').textContent = isVaesen ? 'Vaesen Character' : 'Character';
+      d.showModal();
+      $('#c-save').onclick = () => {
+        const name = $('#c-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const obj = {
+          name,
+          archetype: $('#c-arch').value.trim(),
+          age: $('#c-age').value.trim(),
+          type: $('#c-type').value,
+          motivation: $('#c-motivation').value.trim(),
+          secret: $('#c-secret').value.trim(),
+          trauma: $('#c-trauma').value.trim(),
+          mementos: $('#c-mementos').value.trim(),
+          relationships: $('#c-relationships').value.trim(),
+          resources: $('#c-res').value.trim(),
+          xp: $('#c-xp').value.trim(),
+          notes: $('#c-notes').value.trim(),
+        };
+        if (typeof i === 'number') state.characters[i] = obj;
+        else state.characters.push(obj);
+        save();
+        renderCharacters();
+        d.close();
+      };
+    }
+
+    $('#add-char').addEventListener('click', () => openChar());
+
+    // Plots
+    function plotCard(p, i) {
+      const q = $('#filter-plots').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(p.title, q)}</strong><span class="tag">${highlight(p.type || '', q)} · ${highlight(p.status || '', q)}</span></div>
+        <div class="chip">${highlight(p.desc || '', q)}</div>
+        ${p.rel ? `<div class="chip">Related: ${highlight(p.rel, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit plot ${p.title}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete plot ${p.title}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openPlot(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${p.title}?`)) {
+          state.plots.splice(i, 1);
+          save();
+          renderPlots();
+        }
+      });
+      return el;
+    }
+
+    function renderPlots() {
+      const q = $('#filter-plots').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#plots-list');
+      host.innerHTML = '';
+      const filtered = state.plots.filter(p => !q || (p.title + ' ' + (p.desc || '') + ' ' + (p.rel || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No plots found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((p, i) => host.appendChild(plotCard(p, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((p, i) => host.appendChild(plotCard(p, i + 20)));
+          more.remove();
         });
+        host.appendChild(more);
+      }
+    }
 
-        // Render all
-        function renderAll() {
-            renderCharacters();
-            renderPlots();
-            renderSessions();
-            renderLocations();
-            renderItems();
-            renderCombat();
-            renderTimeline();
+    $('#filter-plots').addEventListener('input', renderPlots);
+
+    function openPlot(i) {
+      const d = $('#dlg-plot');
+      const p = typeof i === 'number' ? state.plots[i] : {};
+      $('#p-title').value = p.title || '';
+      $('#p-type').value = p.type || 'Main';
+      $('#p-status').value = p.status || 'Active';
+      $('#p-desc').value = p.desc || '';
+      $('#p-rel').value = p.rel || '';
+      d.showModal();
+      $('#p-save').onclick = () => {
+        const title = $('#p-title').value.trim();
+        if (!title) {
+          alert('Title is required');
+          return;
+        }
+        const obj = { title, type: $('#p-type').value, status: $('#p-status').value, desc: $('#p-desc').value.trim(), rel: $('#p-rel').value.trim() };
+        if (typeof i === 'number') state.plots[i] = obj;
+        else state.plots.push(obj);
+        save();
+        renderPlots();
+        d.close();
+      };
+    }
+
+    $('#add-plot').addEventListener('click', () => openPlot());
+
+    // Sessions
+    function generateSessionSummary(s) {
+      const notes = (s.notes || '').toLowerCase();
+      const chars = state.characters.filter(c => notes.includes(c.name.toLowerCase())).map(c => c.name).join(', ') || 'None';
+      const plots = state.plots.filter(p => p.status === 'Active' && notes.includes(p.title.toLowerCase())).map(p => p.title).join(', ') || 'None';
+      const locations = state.locations.filter(l => notes.includes(l.name.toLowerCase())).map(l => l.name).join(', ') || 'None';
+      const summary = s.notes ? s.notes.slice(0, 100) + (s.notes.length > 100 ? '...' : '') : 'No notes provided';
+      return `
+Session #${s.num || '?'} - ${s.title || 'Untitled'} (${s.date || 'No date'})
+Summary:
+- Key Events: ${summary}
+- Involved Characters: ${chars}
+- Active Plots: ${plots}
+- Locations: ${locations}
+      `.trim();
+    }
+
+    function sessionCard(s, i) {
+      const q = $('#filter-sessions').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>#${s.num || '?'} – ${highlight(s.title || '', q)}</strong><span class="tag">${highlight(s.date || '', q)}</span></div>
+        <div class="chip">${highlight(s.notes || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit session ${s.title || s.num}">Edit</button>
+          <button class="btn" data-summary="${i}" aria-label="View summary for session ${s.title || s.num}">Summary</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete session ${s.title || s.num}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openSession(i));
+      el.querySelector('[data-summary]')?.addEventListener('click', () => alert(generateSessionSummary(s)));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete session #${s.num || '?'}${s.title ? ' - ' + s.title : ''}?`)) {
+          state.sessions.splice(i, 1);
+          save();
+          renderSessions();
+        }
+      });
+      return el;
+    }
+
+    function renderSessions() {
+      const q = $('#filter-sessions').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#sessions-list');
+      host.innerHTML = '';
+      const filtered = state.sessions.filter(s => !q || (String(s.num) + ' ' + (s.title || '') + ' ' + (s.notes || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No sessions found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((s, i) => host.appendChild(sessionCard(s, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((s, i) => host.appendChild(sessionCard(s, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-sessions').addEventListener('input', renderSessions);
+
+    function openSession(i) {
+      const d = $('#dlg-session');
+      const s = typeof i === 'number' ? state.sessions[i] : {};
+      $('#s-num').value = s.num || '';
+      $('#s-date').value = s.date || '';
+      $('#s-title').value = s.title || '';
+      $('#s-notes').value = s.notes || '';
+      d.showModal();
+      $('#s-save').onclick = () => {
+        const obj = { num: parseInt($('#s-num').value) || '', date: $('#s-date').value, title: $('#s-title').value.trim(), notes: $('#s-notes').value.trim() };
+        if (typeof i === 'number') state.sessions[i] = obj;
+        else state.sessions.push(obj);
+        save();
+        renderSessions();
+        d.close();
+      };
+    }
+
+    $('#add-session').addEventListener('click', () => openSession());
+
+    // Locations
+    function locationCard(l, i) {
+      const q = $('#filter-locations').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(l.name, q)}</strong><span class="tag">${highlight(l.type || '', q)}</span></div>
+        <div class="chip">${highlight(l.desc || '', q)}</div>
+        ${l.notes ? `<div class="chip">${highlight(l.notes, q)}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit location ${l.name}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete location ${l.name}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openLocation(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${l.name}?`)) {
+          state.locations.splice(i, 1);
+          save();
+          renderLocations();
+        }
+      });
+      return el;
+    }
+
+    function renderLocations() {
+      const q = $('#filter-locations').value.toLowerCase() || $('#global-search').value.toLowerCase();
+      const host = $('#locations-list');
+      host.innerHTML = '';
+      const filtered = state.locations.filter(l => !q || (l.name + ' ' + (l.desc || '') + ' ' + (l.notes || '')).toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        host.innerHTML = '<div class="chip">No locations found</div>';
+        return;
+      }
+      filtered.slice(0, 20).forEach((l, i) => host.appendChild(locationCard(l, i)));
+      if (filtered.length > 20) {
+        const more = document.createElement('button');
+        more.className = 'btn';
+        more.textContent = `Show ${filtered.length - 20} more`;
+        more.addEventListener('click', () => {
+          filtered.slice(20).forEach((l, i) => host.appendChild(locationCard(l, i + 20)));
+          more.remove();
+        });
+        host.appendChild(more);
+      }
+    }
+
+    $('#filter-locations').addEventListener('input', renderLocations);
+
+    function openLocation(i) {
+      const d = $('#dlg-location');
+      const l = typeof i === 'number' ? state.locations[i] : {};
+      $('#l-name').value = l.name || '';
+      $('#l-type').value = l.type || 'City';
+      $('#l-desc').value = l.desc || '';
+      $('#l-notes').value = l.notes || '';
+      d.showModal();
+      $('#l-save').onclick = () => {
+        const name = $('#l-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const obj = { name, type: $('#l-type').value, desc: $('#l-desc').value.trim(), notes: $('#l-notes').value.trim() };
+        if (typeof i === 'number') state.locations[i] = obj;
+        else state.locations.push(obj);
+        save();
+        renderLocations();
+        d.close();
+      };
+    }
+
+    $('#add-location').addEventListener('click', () => openLocation());
+
+    // Combat
+    function combatCard(c, i) {
+      const hpPct = Math.max(0, Math.min(100, Math.round(100 * (c.hp / (c.max || 1)))));
+      const el = document.createElement('div');
+      el.className = `card ${i === state.combat.current ? 'active' : ''}`;
+      el.setAttribute('draggable', 'true');
+      el.dataset.index = i;
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(c.name, $('#global-search').value.toLowerCase())}</strong><span class="tag">Init ${c.init || 0} · Armor ${c.armor || 0}</span></div>
+        <div class="hp" title="${c.hp}/${c.max}"><span style="width:${hpPct}%"></span></div>
+        ${c.notes ? `<div class="chip">${highlight(c.notes, $('#global-search').value.toLowerCase())}</div>` : ''}
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-hit="${i}" aria-label="Reduce HP for ${c.name}">-1 HP</button>
+          <button class="btn" data-heal="${i}" aria-label="Increase HP for ${c.name}">+1 HP</button>
+          <button class="btn danger" data-del="${i}" aria-label="Remove ${c.name} from combat">Remove</button>
+        </div>`;
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', i);
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      el.addEventListener('dragover', e => e.preventDefault());
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        const fromIndex = +e.dataTransfer.getData('text/plain');
+        const toIndex = i;
+        if (fromIndex !== toIndex) {
+          const [combatant] = state.combat.list.splice(fromIndex, 1);
+          state.combat.list.splice(toIndex, 0, combatant);
+          state.combat.manualOrder = true;
+          if (state.combat.current === fromIndex) state.combat.current = toIndex;
+          else if (fromIndex < state.combat.current && toIndex >= state.combat.current) state.combat.current--;
+          else if (fromIndex > state.combat.current && toIndex <= state.combat.current) state.combat.current++;
+          save();
+          renderCombat();
+        }
+      });
+      el.querySelector('[data-hit]').addEventListener('click', () => {
+        state.combat.list[i].hp = Math.max(0, state.combat.list[i].hp - 1);
+        save();
+        renderCombat();
+      });
+      el.querySelector('[data-heal]').addEventListener('click', () => {
+        state.combat.list[i].hp = Math.min(state.combat.list[i].max, state.combat.list[i].hp + 1);
+        save();
+        renderCombat();
+      });
+      el.querySelector('[data-del]').addEventListener('click', () => {
+        if (confirm(`Remove ${c.name} from combat?`)) {
+          state.combat.list.splice(i, 1);
+          if (state.combat.current >= state.combat.list.length) state.combat.current = 0;
+          save();
+          renderCombat();
+        }
+      });
+      return el;
+    }
+
+    function renderCombat() {
+      $('#round').textContent = state.combat.round;
+      const host = $('#combat-list');
+      host.innerHTML = '';
+      if (state.combat.list.length === 0) {
+        host.innerHTML = '<div class="chip">No combatants</div>';
+        return;
+      }
+      const sorted = state.combat.manualOrder
+        ? state.combat.list
+        : [...state.combat.list].sort((a, b) => (b.init || 0) - (a.init || 0) || a.name.localeCompare(b.name));
+      sorted.forEach((c, i) => host.appendChild(combatCard(c, state.combat.list.indexOf(c))));
+    }
+
+    $('#add-combatant').addEventListener('click', () => {
+      const d = $('#dlg-combat');
+      d.showModal();
+      $('#cb-save').onclick = () => {
+        const name = $('#cb-name').value.trim();
+        if (!name) {
+          alert('Name is required');
+          return;
+        }
+        const hp = +$('#cb-hp').value || 10;
+        const max = +$('#cb-max').value || 10;
+        const obj = {
+          name,
+          init: +$('#cb-init').value || 0,
+          armor: +$('#cb-armor').value || 0,
+          hp: Math.max(0, Math.min(hp, max)),
+          max,
+          notes: $('#cb-notes').value.trim()
+        };
+        state.combat.list.push(obj);
+        state.combat.manualOrder = false;
+        save();
+        renderCombat();
+        d.close();
+      };
+    });
+
+    $('#next-turn').addEventListener('click', () => {
+      if (state.combat.list.length === 0) return;
+      state.combat.current = (state.combat.current + 1) % state.combat.list.length;
+      if (state.combat.current === 0) state.combat.round += 1;
+      save();
+      renderCombat();
+    });
+
+    $('#sort-combat').addEventListener('click', () => {
+      state.combat.manualOrder = false;
+      save();
+      renderCombat();
+    });
+
+    $('#clear-combat').addEventListener('click', () => {
+      if (confirm('Clear combat?')) {
+        state.combat = { round: 1, list: [], current: 0, manualOrder: false };
+        save();
+        renderCombat();
+      }
+    });
+
+    // Timeline
+    function timelineCard(t, i) {
+      const q = $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(t.title, q)}</strong><span class="tag">${highlight(t.date || '', q)}</span></div>
+        <div class="chip">${highlight(t.desc || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit event ${t.title}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete event ${t.title}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]')?.addEventListener('click', () => openEvent(i));
+      el.querySelector('[data-del]')?.addEventListener('click', () => {
+        if (confirm(`Delete ${t.title}?`)) {
+          state.timeline.splice(i, 1);
+          save();
+          renderTimeline();
+        }
+      });
+      return el;
+    }
+
+    function renderTimeline() {
+      const host = $('#timeline-list');
+      host.innerHTML = '';
+      if (state.timeline.length === 0) {
+        host.innerHTML = '<div class="chip">No timeline events</div>';
+        return;
+      }
+      state.timeline.forEach((t, i) => host.appendChild(timelineCard(t, i)));
+    }
+
+    function openEvent(i) {
+      const d = $('#dlg-timeline');
+      const t = typeof i === 'number' ? state.timeline[i] : {};
+      $('#t-date').value = t.date || '';
+      $('#t-title').value = t.title || '';
+      $('#t-desc').value = t.desc || '';
+      d.showModal();
+      $('#t-save').onclick = () => {
+        const title = $('#t-title').value.trim();
+        if (!title) {
+          alert('Event title is required');
+          return;
+        }
+        const obj = { date: $('#t-date').value, title, desc: $('#t-desc').value.trim() };
+        if (typeof i === 'number') state.timeline[i] = obj;
+        else state.timeline.push(obj);
+        save();
+        renderTimeline();
+        d.close();
+      };
+    }
+
+    $('#add-event').addEventListener('click', () => openEvent());
+
+    // Media
+    function mediaCard(m, i) {
+      const q = $('#global-search').value.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="row spread"><strong>${highlight(m.name || '(untitled)', q)}</strong><span class="tag">${highlight(m.cat || '', q)}</span></div>
+        ${m.file ? `<img src="${m.file}" style="max-width:100%; border-radius:8px; margin-top:8px;" alt="${m.name || 'Media'}">` : ''}
+        ${m.yt ? `<div class="chip">${highlight(m.yt, q)}</div>` : ''}
+        <div class="chip">${highlight(m.desc || '', q)}</div>
+        <div class="row" style="gap:6px; margin-top:10px">
+          <button class="btn" data-edit="${i}" aria-label="Edit media ${m.name || 'untitled'}">Edit</button>
+          <button class="btn danger" data-del="${i}" aria-label="Delete media ${m.name || 'untitled'}">Delete</button>
+        </div>`;
+      el.querySelector('[data-edit]').addEventListener('click', () => openMedia(i));
+      el.querySelector('[data-del]').addEventListener('click', () => {
+        if (confirm(`Delete ${m.name || 'untitled media'}?`)) {
+          state.media.splice(i, 1);
+          save();
+          renderMedia();
+        }
+      });
+      return el;
+    }
+
+    function renderMedia() {
+      const host = $('#media-list');
+      host.innerHTML = '';
+      if (state.media.length === 0) {
+        host.innerHTML = '<div class="chip">No media</div>';
+        return;
+      }
+      state.media.forEach((m, i) => host.appendChild(mediaCard(m, i)));
+    }
+
+    function openMedia(i) {
+      const d = $('#dlg-media');
+      const m = typeof i === 'number' ? state.media[i] : {};
+      $('#m-name').value = m.name || '';
+      $('#m-cat').value = m.cat || 'Map';
+      $('#m-yt').value = m.yt || '';
+      $('#m-desc').value = m.desc || '';
+      $('#m-file').value = '';
+      d.showModal();
+      $('#m-save').onclick = () => {
+        const file = $('#m-file').files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const obj = {
+              name: $('#m-name').value.trim(),
+              cat: $('#m-cat').value,
+              yt: $('#m-yt').value.trim(),
+              desc: $('#m-desc').value.trim(),
+              file: reader.result
+            };
+            if (typeof i === 'number') state.media[i] = obj;
+            else state.media.push(obj);
+            save();
             renderMedia();
+            d.close();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const obj = {
+            name: $('#m-name').value.trim(),
+            cat: $('#m-cat').value,
+            yt: $('#m-yt').value.trim(),
+            desc: $('#m-desc').value.trim(),
+            file: m.file || ''
+          };
+          if (typeof i === 'number') state.media[i] = obj;
+          else state.media.push(obj);
+          save();
+          renderMedia();
+          d.close();
         }
-    </script>
+      };
+    }
+
+    $('#add-media').addEventListener('click', () => openMedia());
+
+    // Generators
+    function openGenerators() {
+      const d = $('#dlg-generators');
+      $('#g-names').value = state.generators.names.join('\n');
+      $('#g-taverns').value = state.generators.taverns.join('\n');
+      $('#g-encounters').value = state.generators.encounters.join('\n');
+      $('#g-quirks').value = state.generators.quirks.join('\n');
+      $('#g-npcs').value = state.generators.npcs.join('\n');
+      d.showModal();
+      $('#g-save').onclick = () => {
+        state.generators.names = $('#g-names').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.taverns = $('#g-taverns').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.encounters = $('#g-encounters').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.quirks = $('#g-quirks').value.split('\n').map(s => s.trim()).filter(s => s);
+        state.generators.npcs = $('#g-npcs').value.split('\n').map(s => s.trim()).filter(s => s);
+        save();
+        d.close();
+      };
+    }
+
+    $('#btn-rand').addEventListener('click', () => $('#dlg-rand').showModal());
+    $('#g-edit').addEventListener('click', () => {
+      $('#dlg-rand').close();
+      openGenerators();
+    });
+    const pick = a => a[Math.floor(Math.random() * a.length)] || '–';
+    $('#g-name').addEventListener('click', () => $('#g-name-out').textContent = pick(state.generators.names));
+    $('#g-tavern').addEventListener('click', () => $('#g-tavern-out').textContent = pick(state.generators.taverns));
+    $('#g-enc').addEventListener('click', () => $('#g-enc-out').textContent = pick(state.generators.encounters));
+    $('#g-quirk').addEventListener('click', () => $('#g-quirk-out').textContent = pick(state.generators.quirks));
+    $('#g-npc').addEventListener('click', () => $('#g-npc-out').textContent = pick(state.generators.npcs));
+
+    // Export/Import/Delete
+    $('#btn-export').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'campaign.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('#btn-import').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const data = JSON.parse(rd.result);
+          if (!data.campaign || !Array.isArray(data.characters) || !Array.isArray(data.plots) || !Array.isArray(data.sessions) || !Array.isArray(data.locations) || !Array.isArray(data.combat?.list) || !Array.isArray(data.timeline) || !Array.isArray(data.media)) {
+            throw new Error('Invalid data structure: missing or incorrect fields');
+          }
+          Object.assign(state, data);
+          save();
+          bootstrap();
+        } catch (err) {
+          alert(`Import failed: ${err.message}`);
+        }
+      };
+      rd.readAsText(file);
+    });
+
+    $('#btn-wipe').addEventListener('click', () => {
+      if (confirm('Delete ALL campaign data? This cannot be undone.')) {
+        localStorage.removeItem('cm-data');
+        location.reload();
+      }
+    });
+
+    // Global Search
+    function performSearch() {
+      const q = $('#global-search').value.toLowerCase();
+      const sections = [
+        { id: 'p-characters', data: state.characters, check: x => (x.name + ' ' + (x.notes || '') + ' ' + (x.archetype || '') + ' ' + (x.motivation || '') + ' ' + (x.secret || '') + ' ' + (x.relationships || '')).toLowerCase() },
+        { id: 'p-plots', data: state.plots, check: x => (x.title + ' ' + (x.desc || '') + ' ' + (x.rel || '')).toLowerCase() },
+        { id: 'p-sessions', data: state.sessions, check: x => (String(x.num) + ' ' + (x.title || '') + ' ' + (x.notes || '')).toLowerCase() },
+        { id: 'p-locations', data: state.locations, check: x => (x.name + ' ' + (x.desc || '') + ' ' + (x.notes || '')).toLowerCase() },
+        { id: 'p-timeline', data: state.timeline, check: x => (x.title + ' ' + (x.desc || '') + ' ' + (x.date || '')).toLowerCase() },
+        { id: 'p-media', data: state.media, check: x => ((x.name || '') + ' ' + (x.desc || '') + ' ' + (x.yt || '') + ' ' + (x.cat || '')).toLowerCase() }
+      ];
+      if (q) {
+        const matches = sections.map(s => ({ id: s.id, count: s.data.filter(x => s.check(x).includes(q)).length }));
+        const topMatch = matches.reduce((a, b) => a.count > b.count ? a : b, { id: '', count: 0 });
+        if (topMatch.count > 0) activate(topMatch.id);
+      }
+      renderCharacters();
+      renderPlots();
+      renderSessions();
+      renderLocations();
+      renderTimeline();
+      renderMedia();
+      renderCombat();
+    }
+
+    $('#global-search').addEventListener('input', performSearch);
+    $('#btn-clear').addEventListener('click', () => {
+      $('#global-search').value = '';
+      performSearch();
+    });
+
+    function activate(id) {
+      $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === id));
+      $$('.page').forEach(p => p.classList.toggle('active', p.id === id));
+    }
+
+    // Dice
+    $$('.dock [data-d]').forEach(b => b.addEventListener('click', () => {
+      const d = +b.dataset.d;
+      const n = 1 + Math.floor(Math.random() * d);
+      $('#last-roll').textContent = `d${d}: ${n}`;
+    }));
+
+    // Bootstrap
+    function bootstrap() {
+      renderCampaign();
+      renderCharacters();
+      renderPlots();
+      renderSessions();
+      renderLocations();
+      renderCombat();
+      renderTimeline();
+      renderMedia();
+    }
+    bootstrap();
+  </script>
 </body>
 </html>
